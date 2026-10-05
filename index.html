@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>AI Living Lab</title>
+<style>
+  :root{
+    --green:#1f7a4d;        /* заголовки */
+    --green-dark:#155c39;
+    --lime:#bfe14a;         /* акцентная линия */
+    --bg:#fbfcf7;
+    --panel:#ffffff;
+    --ink:#1c2b22;
+    --muted:#7a8a80;
+    --line:#e3ebe4;
+    --sit:#e6f2ea;          /* ситуация */
+    --sit-br:#bcd9c6;
+    --val:#f0e7d8;          /* для кого ценность */
+    --val-br:#e0d2b8;
+    --chg:#faf0b8;          /* что должно измениться */
+    --chg-br:#ecd97a;
+    --note:#fff6c9;
+    --shadow:0 2px 8px rgba(30,60,40,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);overflow:hidden;-webkit-user-select:none;user-select:none}
+
+  /* ---------- Top bar ---------- */
+  #topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--panel);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:14px;padding:0 14px;z-index:40}
+  #brand{font-weight:800;color:var(--green);font-size:15px;white-space:nowrap;letter-spacing:.2px}
+  #brand small{display:block;font-weight:600;color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+  .spacer{flex:1}
+  select,button{font-family:inherit;font-size:13px}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:8px 12px;cursor:pointer;white-space:nowrap;transition:.12s}
+  .btn:hover{border-color:var(--green);color:var(--green)}
+  .btn.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+  .btn.primary:hover{background:var(--green-dark)}
+  .btn.small{padding:6px 9px;font-size:12px}
+  #spaceSel{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff;font-weight:600;color:var(--green)}
+  #conn{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap}
+  #conn .dot{width:8px;height:8px;border-radius:50%;background:#c9c9c9}
+  #conn.live .dot{background:#2fb36b}
+  #conn.local .dot{background:#e0a52a}
+  #timer{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px 6px}
+  #timer input{width:46px;border:1px solid var(--line);border-radius:6px;padding:4px;font-family:inherit;font-size:12px;-webkit-user-select:text;user-select:text}
+  #timerDisp{font-variant-numeric:tabular-nums;font-weight:800;color:var(--green-dark);min-width:54px;text-align:center;font-size:15px}
+  #timer.done #timerDisp{color:#d1495b;animation:tblink 1s steps(2,start) infinite}
+  @keyframes tblink{50%{opacity:.2}}
+
+  /* ---------- Stage tabs ---------- */
+  #stages{position:fixed;top:56px;left:0;right:0;height:46px;background:var(--panel);border-bottom:1px solid var(--line);
+    display:flex;align-items:stretch;gap:0;z-index:35;overflow-x:auto}
+  .stage-tab{border:none;background:none;padding:0 16px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);
+    font-size:13px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap}
+  .stage-tab .num{width:20px;height:20px;border-radius:50%;background:var(--line);color:#fff;display:grid;place-items:center;font-size:11px}
+  .stage-tab.active{color:var(--green);border-bottom-color:var(--lime)}
+  .stage-tab.active .num{background:var(--green)}
+  .stage-tab.locked{color:#c2ccc5;cursor:not-allowed}
+  .stage-tab.locked .num{background:#dbe3dc}
+
+  /* ---------- Instruction banner ---------- */
+  #banner{position:fixed;top:102px;left:14px;right:14px;background:#fff;border:1px solid var(--line);border-left:5px solid var(--lime);
+    border-radius:10px;padding:10px 14px;z-index:30;box-shadow:var(--shadow);font-size:13px;line-height:1.4}
+  #banner b{color:var(--green)}
+  #banner .close{position:absolute;top:6px;right:8px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px}
+
+  /* ---------- Canvas ---------- */
+  #canvas{position:fixed;inset:0;top:102px;overflow:hidden;cursor:grab;background:
+     radial-gradient(circle, #e7eee7 1px, transparent 1px);background-size:26px 26px}
+  #canvas.grabbing{cursor:grabbing}
+  #watermark{position:absolute;inset:0;display:grid;place-items:center;font-size:560px;line-height:1;
+    opacity:.06;pointer-events:none;z-index:0;filter:grayscale(.2)}
+  #world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;z-index:1}
+
+  .card{position:absolute;width:280px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+    overflow:hidden;cursor:grab}
+  .card .chd{padding:9px 12px 7px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .card .tag{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--green);text-transform:uppercase}
+  .card .who{font-size:12px;font-weight:700;color:var(--green-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+  .card .del{border:none;background:none;color:#c2ccc5;cursor:pointer;font-size:15px;line-height:1}
+  .card .del:hover{color:#d1495b}
+  .card .del{margin-left:auto}
+  .card ol.tasks{margin:0;padding:0 0 0 4px;list-style:none;counter-reset:t}
+  .card ol.tasks li{counter-increment:t;font-size:12px;line-height:1.35;color:var(--ink);display:flex;align-items:flex-start;gap:6px;padding:2px 0}
+  .card ol.tasks li:before{content:counter(t)".";color:var(--green);font-weight:700;flex:0 0 auto}
+  .card ol.tasks li .tt{flex:1;word-break:break-word}
+  .card ol.tasks li .pop{flex:0 0 auto;border:1px solid var(--sit-br);background:var(--sit);color:var(--green);cursor:pointer;
+    font-size:11px;border-radius:6px;padding:0 6px;line-height:1.5}
+  .card ol.tasks li .pop:hover{background:var(--green);color:#fff;border-color:var(--green)}
+  .card .txt.empty.tasksempty{padding:2px 0}
+
+  /* task rows in modal */
+  #taskRows{display:flex;flex-direction:column;gap:7px;margin-bottom:8px}
+  .taskrow{display:flex;gap:7px;align-items:flex-start}
+  .taskrow .num{color:var(--green);font-weight:800;font-size:13px;padding-top:9px;width:16px;text-align:right}
+  .taskrow textarea{flex:1;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:8px;font-family:inherit;font-size:14px;resize:vertical;background:#fff;-webkit-user-select:text;user-select:text}
+  .taskrow textarea:focus{outline:none;border-color:var(--green)}
+  .taskrow .rm{border:none;background:none;color:#c2ccc5;cursor:pointer;font-size:18px;padding-top:6px}
+  .taskrow .rm:hover{color:#d1495b}
+  .card .fld{padding:8px 12px;border-bottom:1px solid #f0f4f0}
+  .card .fld:last-child{border-bottom:none}
+  .card .lbl{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--green);margin-bottom:3px}
+  .card .txt{font-size:12px;line-height:1.35;color:var(--ink);white-space:pre-wrap;word-break:break-word;min-height:14px;color:var(--ink)}
+  .card .txt.empty{color:#b9c4bc;font-style:italic}
+  .card .fld.f-sit{background:var(--sit)}
+  .card .fld.f-val{background:var(--val)}
+  .card .fld.f-chg{background:var(--chg)}
+  .card .fld.f-task{background:#fff}
+  .card .fld.f-pink{background:#fbe0e6}
+  .card ol.tasks.nopop li .tt{padding-right:0}
+
+  .note{position:absolute;width:190px;min-height:120px;background:var(--note);border:1px solid var(--chg-br);border-radius:10px;
+    box-shadow:var(--shadow);padding:12px;cursor:grab;font-size:13px;line-height:1.35;white-space:pre-wrap;word-break:break-word}
+  .note .del{position:absolute;top:4px;right:6px;border:none;background:none;color:#b7a94e;cursor:pointer;font-size:14px}
+  .note .mbadge{position:absolute;top:-8px;left:-8px;width:24px;height:24px;border-radius:50%;background:var(--green-dark);
+    color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;box-shadow:var(--shadow)}
+  .note[data-color="green"]{background:#dff0e4;border-color:var(--sit-br)}
+  .note[data-color="pink"]{background:#fbe0e6;border-color:#eeb6c2}
+  .note[data-color="blue"]{background:#dde9fb;border-color:#b6c9ee}
+
+  /* зоны команд в общем пространстве */
+  .zone{position:absolute;border:2px dashed var(--sit-br);border-radius:18px;background:rgba(191,225,74,.06);pointer-events:none}
+  .zone .zlabel{position:absolute;top:-15px;left:20px;background:var(--green);color:#fff;font-size:13px;font-weight:700;
+    padding:4px 14px;border-radius:20px;box-shadow:var(--shadow)}
+  .zone .zsym{position:absolute;inset:0;display:grid;place-items:center;font-size:min(46vh,320px);line-height:1;opacity:.08;filter:grayscale(.2)}
+
+  /* матрица ABCDE (этап 3) */
+  .mxtitle{position:absolute;pointer-events:none}
+  .mxtitle .k{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--green);text-transform:uppercase}
+  .mxtitle h3{margin:3px 0 0;font-size:26px;color:var(--green-dark)}
+  .mxtitle .line{height:4px;background:var(--lime);border-radius:2px;margin-top:8px;width:560px}
+  .mxcol{position:absolute;border-radius:16px;padding:16px;pointer-events:none;border:1px solid var(--line);
+    box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .mxcol[data-c="A"]{background:var(--sit);border-color:var(--sit-br)}
+  .mxcol[data-c="B"]{background:var(--chg);border-color:var(--chg-br)}
+  .mxcol[data-c="C"]{background:var(--val);border-color:var(--val-br)}
+  .mxcol[data-c="D"]{background:#dde9fb;border-color:#b6c9ee}
+  .mxcol[data-c="E"]{background:#fbe0e6;border-color:#eeb6c2}
+  .mxcol .badge{width:34px;height:34px;border-radius:50%;background:var(--green-dark);color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:15px}
+  .mxcol[data-c="E"] .badge{background:#e07856}
+  .mxcol h4{margin:12px 0 8px;font-size:15px;color:#20351f;line-height:1.25}
+  .mxcol .d{font-size:11.5px;color:#5c6b60;line-height:1.4;min-height:66px}
+  .mxcol .zt{margin-top:14px;font-size:10px;font-weight:800;letter-spacing:.6px;color:var(--green);text-transform:uppercase}
+  .mxcol .drop{margin-top:8px;border:2px dashed rgba(0,0,0,.12);border-radius:10px;flex:1;min-height:180px}
+
+  /* карточки этапа 4 — инлайн-форма прямо в пространстве */
+  .tplcard{width:620px;padding:0 0 16px;cursor:grab}
+  .tplhead{padding:16px 18px 0;position:relative}
+  .tpldel{position:absolute;top:12px;right:14px;border:1px solid var(--line);background:#fff;color:#b3bdb5;
+    width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:16px;line-height:1}
+  .tpldel:hover{color:#d1495b;border-color:#d1495b}
+  .tplhead .k{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--green);text-transform:uppercase}
+  .tplhead .ttl{margin-top:3px;font-size:22px;font-weight:800;color:var(--green-dark)}
+  .tplhead .line{height:4px;background:var(--lime);border-radius:2px;margin:10px 0 0}
+  .tplhead .tplsub{margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.4}
+  .tplcard .fld{margin:12px 16px;border-radius:14px;padding:14px;border:1px solid transparent}
+  .tplcard .fld.f-sit{background:var(--sit);border-color:var(--sit-br)}
+  .tplcard .fld.f-val{background:var(--val);border-color:var(--val-br)}
+  .tplcard .fld.f-chg{background:var(--chg);border-color:var(--chg-br)}
+  .tplcard .fld.f-task{background:#fff;border-color:var(--line)}
+  .tplcard .fld.f-pink{background:#fbe0e6;border-color:#eeb6c2}
+  .tplcard .lbl{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--green);margin-bottom:2px}
+  .tplcard .fhint{font-size:11px;color:var(--muted);margin-bottom:6px}
+  .ilist{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .irow{display:flex;gap:8px;align-items:flex-start}
+  .irow .num{color:var(--green);font-weight:800;font-size:14px;padding-top:9px;width:18px;text-align:right;flex:0 0 auto}
+  .irow textarea,.tplcard .ita{flex:1;width:100%;border:1px solid rgba(0,0,0,.14);border-radius:8px;padding:9px;
+    font-family:inherit;font-size:14px;resize:none;overflow:hidden;background:#fff;-webkit-user-select:text;user-select:text}
+  .irow textarea:focus,.tplcard .ita:focus{outline:none;border-color:var(--green)}
+  .irow .rm{border:none;background:none;color:#c2ccc5;cursor:pointer;font-size:18px;padding-top:6px;flex:0 0 auto}
+  .irow .rm:hover{color:#d1495b}
+  .iadd{margin:10px 0 0}
+
+  /* ---------- Floating toolbar ---------- */
+  #tools{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow);display:flex;gap:6px;padding:7px;z-index:38}
+  #zoomlabel{align-self:center;font-size:12px;color:var(--muted);min-width:44px;text-align:center}
+
+  /* ---------- Modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,40,30,.35);z-index:60;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:40px 16px}
+  .overlay.open{display:flex}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:640px;box-shadow:0 12px 40px rgba(0,0,0,.25);overflow:hidden}
+  .modal .mhd{padding:18px 22px 14px;border-bottom:3px solid var(--lime)}
+  .modal .mhd .k{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green)}
+  .modal .mhd h2{margin:2px 0 0;font-size:22px;color:var(--green-dark)}
+  .modal .mhd p{margin:6px 0 0;color:var(--muted);font-size:13px}
+  .nameInput{margin-top:10px;width:100%;max-width:280px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-family:inherit;font-size:14px;font-weight:600;color:var(--green-dark);background:#fff;-webkit-user-select:text;user-select:text}
+  .nameInput:focus{outline:none;border-color:var(--green)}
+  .mbody{padding:16px 22px}
+  .field{margin-bottom:14px;border-radius:12px;padding:12px 14px}
+  .field.f-sit{background:var(--sit);border:1px solid var(--sit-br)}
+  .field.f-val{background:var(--val);border:1px solid var(--val-br)}
+  .field.f-chg{background:var(--chg);border:1px solid var(--chg-br)}
+  .field.f-task{background:#fff;border:1px solid var(--line)}
+  .field.f-pink{background:#fbe0e6;border:1px solid #eeb6c2}
+  .field label{display:block;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--green);margin-bottom:2px}
+  .field .hint{font-size:11px;color:var(--muted);margin-bottom:7px}
+  .field textarea{width:100%;border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:9px;font-family:inherit;font-size:14px;resize:vertical;background:#fff;-webkit-user-select:text;user-select:text}
+  .field textarea:focus{outline:none;border-color:var(--green)}
+  .mfoot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+
+  /* master panel */
+  #masterFab{position:fixed;bottom:18px;right:18px;z-index:39;display:none}
+  #masterPanel{position:fixed;bottom:64px;right:18px;width:280px;background:#fff;border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);z-index:45;padding:14px;display:none}
+  #masterPanel h3{margin:0 0 4px;font-size:14px;color:var(--green)}
+  #masterPanel p{margin:0 0 10px;font-size:11px;color:var(--muted)}
+  .mstage{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:12px}
+  .mstage:first-of-type{border-top:none}
+  .mstage .st-name{flex:1}
+  .mstage .st-badge{font-size:10px;padding:2px 7px;border-radius:20px;background:#eef3ee;color:var(--muted)}
+  .mstage .st-badge.open{background:#dff0e4;color:var(--green)}
+
+  .hidden{display:none!important}
+
+  /* итоговая матрица (этап 6) */
+  .mx6card{width:auto}
+  .mx6grid{display:grid;grid-template-columns:230px repeat(5,220px);gap:10px;padding:16px 16px 0}
+  .mx6cell{border-radius:12px}
+  .mx6corner{background:transparent}
+  .mx6colhead{padding:10px 12px;font-weight:700;font-size:13px;text-align:center;color:var(--green-dark);
+    background:var(--sit);border:1px solid var(--sit-br);display:flex;align-items:center;justify-content:center}
+  .mx6colhead.f-pink{background:#fbe0e6;border-color:#eeb6c2;color:#a13a52}
+  .mx6rowhead{padding:10px 12px;font-weight:700;font-size:12.5px;color:var(--green-dark);border:1px solid var(--line);
+    display:flex;align-items:center;background:#fff}
+  .mx6rowhead.f-sit{background:var(--sit);border-color:var(--sit-br)}
+  .mx6rowhead.f-chg{background:var(--chg);border-color:var(--chg-br)}
+  .mx6ro,.mx6edit{background:#fff;border:1px solid var(--line);padding:8px 10px;min-height:74px;transition:background .15s,border-color .15s}
+  .mx6edit{display:flex;flex-direction:column;gap:6px}
+  .mx6edit.dragover{background:var(--sit);border-color:var(--green);border-style:dashed}
+  .mx6itemlist{display:flex;flex-direction:column;gap:6px}
+  .mx6item{display:flex;align-items:flex-start;gap:2px;border:1px solid rgba(0,0,0,.14);border-radius:8px;
+    background:#fff;padding:6px 4px 6px 8px;cursor:grab}
+  .mx6item.dragging{opacity:.35}
+  .mx6ta,.mx6ita{width:100%;min-height:20px;border:none;outline:none;resize:none;overflow:hidden;
+    font-family:inherit;font-size:12px;line-height:1.35;background:transparent;-webkit-user-select:text;user-select:text}
+  .mx6ita{flex:1;cursor:text}
+  .mx6ta:focus,.mx6ita:focus{outline:none}
+  .mx6itemrm{border:none;background:none;color:#c2ccc5;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;padding:2px}
+  .mx6itemrm:hover{color:#d1495b}
+  .mx6itemadd{align-self:flex-start}
+  .mx6synced{display:flex;flex-direction:column;gap:6px;margin-bottom:2px}
+  .mx6syncitem{border:1px dashed var(--sit-br);border-radius:8px;background:var(--sit);padding:6px 8px;
+    font-size:12px;line-height:1.35;color:var(--green-dark);white-space:pre-wrap;word-break:break-word}
+  .mx6footer{margin:14px 16px 16px;background:var(--green-dark);color:#fff;text-align:center;font-weight:700;
+    font-size:13px;padding:12px 16px;border-radius:12px}
+  .mx6stickers{position:absolute;width:700px;display:flex;flex-wrap:wrap;gap:12px;align-content:flex-start}
+  .mx6stickershead{width:100%;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--green);margin-top:16px}
+  .mx6stickershead:first-child{margin-top:0}
+  .mx6sticker{width:200px;min-height:64px;cursor:grab;background:#dff0e4;border:1px solid var(--sit-br);
+    border-radius:10px;box-shadow:var(--shadow);padding:10px 12px;font-size:12.5px;line-height:1.35;
+    white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+  .mx6sticker.cond{background:var(--val);border-color:var(--val-br)}
+  .mx6sticker:active{cursor:grabbing}
+
+  @media(max-width:640px){
+    #brand small{display:none}
+    .card{width:240px}
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="brand">AI Living Lab<small>Мастерская</small></div>
+  <select id="spaceSel"></select>
+  <button class="btn primary" id="addCardBtn">+ Карточка</button>
+  <button class="btn" id="addNoteBtn">+ Стикер</button>
+  <button class="btn primary" id="addTrialBtn" style="display:none">+ Карточка пробы</button>
+  <button class="btn" id="addFnBtn" style="display:none">+ Полевые заметки</button>
+  <button class="btn primary" id="addConditionBtn" style="display:none">+ Карточка условия</button>
+  <div class="spacer"></div>
+  <div id="conn"><span class="dot"></span><span id="connText">…</span></div>
+  <div id="timer">
+    <input id="timerMin" type="number" min="0" max="180" value="5" title="Минут">
+    <span id="timerDisp">05:00</span>
+    <button class="btn small" id="timerStart">Старт</button>
+    <button class="btn small" id="timerReset" title="Сброс">⟲</button>
+  </div>
+  <button class="btn small" id="exportBtn">Экспорт .md</button>
+</div>
+
+<div id="stages"></div>
+
+<div id="banner">
+  <button class="close" id="bannerClose">×</button>
+  <span id="bannerText"></span>
+</div>
+
+<div id="canvas"><div id="watermark"></div><div id="world"></div></div>
+
+<div id="tools">
+  <button class="btn small" id="zoomOut">−</button>
+  <span id="zoomlabel">100%</span>
+  <button class="btn small" id="zoomIn">+</button>
+  <button class="btn small" id="fitBtn">Показать всё</button>
+</div>
+
+<!-- master -->
+<button class="btn primary" id="masterFab">Панель ведущего</button>
+<div id="masterPanel">
+  <h3>Управление этапами</h3>
+  <p>Открывайте этапы по ходу. Всем участникам этап откроется мгновенно.</p>
+  <div id="mstages"></div>
+  <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)">
+    <button class="btn small" id="syncStage3Btn" style="width:100%">Скопировать стикеры этапа 2 → Матрица</button>
+  </div>
+</div>
+
+<!-- card modal -->
+<div class="overlay" id="cardOverlay">
+  <div class="modal">
+    <div class="mhd">
+      <div class="k">Рабочий шаблон</div>
+      <h2>Карточка профессиональной ситуации</h2>
+      <p>Одна карточка = один реальный случай с конкретным профессиональным результатом</p>
+      <input id="fName" class="nameInput" type="text" placeholder="Имя автора" />
+    </div>
+    <div class="mbody">
+      <div class="field f-sit">
+        <label>Ситуация</label>
+        <div class="hint">Что произошло? В каком контексте? Почему этот случай значим?</div>
+        <textarea id="fSit" rows="3"></textarea>
+      </div>
+      <div class="field f-val">
+        <label>Для кого создаётся ценность</label>
+        <div class="hint">Студент, коллега, подразделение, организация или другой получатель</div>
+        <textarea id="fVal" rows="2"></textarea>
+      </div>
+      <div class="field f-chg">
+        <label>Что должно измениться</label>
+        <div class="hint">Какое наблюдаемое изменение покажет, что результат достигнут?</div>
+        <textarea id="fChg" rows="2"></textarea>
+      </div>
+      <div class="field f-task">
+        <label>Какие задачи выполняются</label>
+        <div class="hint">По одной задаче в строке. Каждую потом можно вынести на отдельный стикер. Про ИИ пока не думаем.</div>
+        <div id="taskRows"></div>
+        <button type="button" class="btn small" id="addTaskRow">+ добавить задачу</button>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" id="cardCancel">Отмена</button>
+      <button class="btn primary" id="cardSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- generic template modal (проба / полевые заметки) -->
+<div class="overlay" id="tplOverlay">
+  <div class="modal">
+    <div class="mhd"><div class="k" id="tplKicker"></div><h2 id="tplTitle"></h2><p id="tplSub"></p></div>
+    <div class="mbody" id="tplBody"></div>
+    <div class="mfoot"><button class="btn" id="tplCancel">Отмена</button><button class="btn primary" id="tplSave">Сохранить</button></div>
+  </div>
+</div>
+
+<!-- note modal -->
+<div class="overlay" id="noteOverlay">
+  <div class="modal" style="max-width:420px">
+    <div class="mhd"><div class="k">Стикер</div><h2 id="noteTitle">Стикер</h2></div>
+    <div class="mbody">
+      <div class="field f-task" style="background:#fffdf0">
+        <label>Текст</label>
+        <div class="hint">Действие, название группы/типа, вопрос, заметка</div>
+        <textarea id="nText" rows="3"></textarea>
+      </div>
+      <div style="display:flex;gap:8px" id="noteColors">
+        <button class="btn small" data-c="yellow">Жёлтый</button>
+        <button class="btn small" data-c="green">Зелёный</button>
+        <button class="btn small" data-c="pink">Розовый</button>
+        <button class="btn small" data-c="blue">Синий</button>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" id="noteCancel">Отмена</button>
+      <button class="btn primary" id="noteSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- библиотека раздаётся с этого же домена (не со стороннего CDN), чтобы её
+     не резало по QUIC/HTTP3 у части провайдеров/VPN (см. ERR_QUIC_PROTOCOL_ERROR) -->
+<script src="vendor/supabase.min.js"></script>
+<script>
+/* ============================================================
+   КОНФИГУРАЦИЯ SUPABASE
+   Впишите сюда значения из проекта Supabase (Settings → API).
+   Пока пусто — приложение работает в ЛОКАЛЬНОМ режиме
+   (данные в этом браузере + синхронизация между вкладками).
+   ============================================================ */
+const SUPABASE_URL = "https://kyazabnvnhpjshgwzeuh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4muNOrxHI6COqkaTwysyHg_sTHAzrj3";
+
+const MASTER_PASSWORD = "ka2026"; // пароль панели ведущего
+
+/* ВРЕМЕННО ДЛЯ ТЕСТА: true — все этапы открыты сразу в локальном режиме.
+   Перед реальным мероприятием верните false, чтобы работал «туман войны». */
+const UNLOCK_ALL_LOCAL = false;
+
+/* ---------- Этапы ---------- */
+const STAGES = [
+  {n:1, title:"Карточки ситуаций", text:"<b>Этап 1.</b> На основе рассказов друг друга заполните карточки профессиональных ситуаций. Одна карточка – одна ситуация."},
+  {n:2, title:"Типы задач (общее)", text:"<b>Этап 2.</b> Сгруппируйте задачи всех команд в общие кластеры."},
+  {n:3, title:"Матрица ABCDE", text:"<b>Этап 3.</b> Какие профессиональные задачи мы можем выполнять с помощью ИИ? Отнесите кластеры/задачи по уровням: сам · команда · подразделение · система, и по тому, насколько применим ИИ (можно → нельзя). Стикерами разложите гипотезы команды."},
+  {n:4, title:"Пробы и заметки", text:"<b>Этап 4.</b> Попробуйте выполнить кейсы. При выполнении заполните карточку пробы, а также полевые заметки. Карточка пробы заполняется на каждый кейс отдельно, полевые заметки ведутся в одном журнале."},
+  {n:5, title:"Условия внедрения", text:"<b>Этап 5.</b> Какие условия применения/внедрения ИИ нам нужны, чтобы осваивать его осмысленно, безопасно и с практической пользой? Разложите мысль по четырём уровням: самостоятельно · на уровне своей команды · на уровне взаимодействия со смежными подразделениями · на уровне всей Вышки системно."},
+  {n:6, title:"Итоговая матрица", text:"<b>Этап 6.</b> Итоговая матрица базовой команды. Заполняйте на основе результатов проб и наблюдений всех дней."}
+];
+
+/* ---------- Группы этапа 4 (люди могут перераспределиться, до 10) ---------- */
+const GROUP_SYMBOLS=["🐗","🦫","🦡","🦔","🐿️","🐺","🐇","🦇","🐍","🦅"];
+const GROUP_NAMES=["Кабан","Бобр","Барсук","Ёж","Белка","Волк","Заяц","Летучая мышь","Уж","Орёл"];
+const GROUPS=Array.from({length:10},(_,i)=>({id:"group"+(i+1), name:`Группа ${i+1} · ${GROUP_NAMES[i]}`}));
+
+/* ---------- Шаблоны карточек этапа 4 ---------- */
+const TEMPLATES={
+  trial:{
+    type:"trial", kicker:"Рабочий шаблон", title:"Карточка пробы",
+    subtitle:"Зафиксируйте одну завершённую или остановленную попытку решить задачу с помощью ИИ",
+    fields:[
+      {key:"task",     label:"Задача", cls:"f-sit"},
+      {key:"need",     label:"Что надо получить / в чём ценность", cls:"f-val"},
+      {key:"recipient",label:"Кто получатель ценности", cls:"f-val"},
+      {key:"success",  label:"Как поймём, что является успехом", cls:"f-chg"},
+      {key:"how",      label:"Как делали", cls:"f-task", hint:"Инструменты, запросы, итерации, проверки, участие человека", list:true},
+      {key:"result",   label:"Что получилось в итоге", cls:"f-sit", hint:"Результат, качество, полезность и что требуется доработать"}
+    ]
+  },
+  fieldnotes:{
+    type:"fieldnotes", kicker:"Рабочий шаблон", title:"Полевые заметки",
+    subtitle:"Фиксируйте наблюдения по ходу работы, не дожидаясь завершения пробы",
+    fields:[
+      {key:"questions",label:"Вопросы, возникающие во время работы", cls:"f-sit", list:true},
+      {key:"wins",     label:"Удачные решения / лайфхаки / инсайты", cls:"f-chg", list:true},
+      {key:"deadends", label:"Неудачные решения / тупики", cls:"f-pink", list:true},
+      {key:"emotions", label:"Эмоциональные реакции", cls:"f-val", hint:"На что отреагировали и какие эмоции возникли?", list:true},
+      {key:"tech",     label:"Технические ограничения", cls:"f-task", list:true},
+      {key:"corp",     label:"Корпоративные ограничения / небезопасно", cls:"f-pink", list:true}
+    ]
+  },
+  condition:{
+    type:"condition", kicker:"Рабочий шаблон", title:"Какие условия нужны",
+    subtitle:"Одна цепочка «что → как → чья помощь» — одна карточка. Для новой цепочки добавьте ещё одну карточку.",
+    fields:[
+      {key:"what",label:"Что", cls:"f-sit"},
+      {key:"how", label:"Как", cls:"f-val"},
+      {key:"who", label:"Чья помощь", cls:"f-chg"}
+    ]
+  }
+};
+
+/* ---------- Пространства ---------- */
+const SYMBOLS = ["🌲","🍄","🦊","🦉","🐻","🦌"]; // лесной символ каждой команды
+const SPACES = [
+  {id:"team1", name:"Команда 1 · Ель"},
+  {id:"team2", name:"Команда 2 · Гриб"},
+  {id:"team3", name:"Команда 3 · Лиса"},
+  {id:"team4", name:"Команда 4 · Сова"},
+  {id:"team5", name:"Команда 5 · Медведь"},
+  {id:"team6", name:"Команда 6 · Олень"},
+  {id:"common", name:"Общее пространство"}
+];
+const TEAM_SPACES = SPACES.filter(s=>s.id!=="common");
+function teamSymbol(i){ return SYMBOLS[i]||""; }
+
+/* ============================================================
+   Состояние
+   ============================================================ */
+const state = {
+  space: SPACES[0].id,
+  stage: 0,             // индекс активной вкладки (0-based)
+  unlocked: 0,          // максимальный открытый этап (0-based), синхронизируется
+  cards: {},            // id -> item
+  view: {x:40, y:20, k:1},
+  isMaster: false,
+  timer: {duration:300, remaining:300, running:false, endAt:null}
+};
+let store = null;       // адаптер данных (supabase или локальный)
+
+/* ============================================================
+   DOM helpers
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const world = $("#world");
+const canvas = $("#canvas");
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id'+Date.now()+Math.random().toString(16).slice(2));
+
+/* ============================================================
+   Рендер
+   ============================================================ */
+function applyView(){
+  world.style.transform = `translate(${state.view.x}px,${state.view.y}px) scale(${state.view.k})`;
+  $("#zoomlabel").textContent = Math.round(state.view.k*100)+"%";
+}
+
+/* фильтр элементов по активному этапу */
+function tasksOnly(){ return state.stage===1; }
+function itemMatchesStage(it){
+  if(state.stage===3) return it.type==="trial"||it.type==="fieldnotes";  // этап 4
+  if(state.stage===4) return it.type==="condition";                     // этап 5
+  if(state.stage===5) return it.type==="matrix6";                       // этап 6
+  if(it.type==="trial"||it.type==="fieldnotes"||it.type==="condition"||it.type==="matrix6") return false;
+  if(state.stage===2) return it.s3===true;      // этап 3 — только копии для матрицы
+  if(it.s3) return false;                        // копии этапа 3 не видны на других этапах
+  if(state.stage===1) return it.type==="note";   // этап 2 — только задачи
+  return true;                                    // этап 1 — всё
+}
+function stageFilter(arr){ return arr.filter(itemMatchesStage); }
+
+function visibleItems(){
+  let items;
+  if(state.space==="common")
+    items = Object.values(state.cards).filter(it => it.space==="common" || /^team[1-6]$/.test(it.space));
+  else
+    items = Object.values(state.cards).filter(it => it.space === state.space);
+  return stageFilter(items);
+}
+/* элементы команды i с учётом фильтра этапа (для раскладки зон) */
+function teamItemsFor(i){
+  return stageFilter(Object.values(state.cards).filter(it=>it.space==="team"+(i+1)));
+}
+
+/* --- общее пространство = точный дубль каждого командного пространства --- */
+/* компактная сетка 3×2: каждая зона подгоняется под содержимое своей команды */
+function teamIndex(space){ const m=/^team([1-6])$/.exec(space||""); return m?parseInt(m[1],10)-1:-1; }
+
+const CLP={PAD:44, TOPPAD:64, GAP:90, EMPTY_W:600, EMPTY_H:380};
+let commonT={};   // индекс команды -> {x,y (сдвиг), cellX,cellY,cellW,cellH}
+
+/* черновые (предполагаемые) размеры карточек — используются только для первого,
+   ещё не отрисованного прохода. Реальная высота карточки зависит от текста и
+   считается позже в refineCommonLayout(), после того как DOM её отрисует. */
+function boxesFromGuess(){
+  const boxes=[];
+  for(let i=0;i<6;i++){
+    const items=teamItemsFor(i);
+    let minX,minY,maxX,maxY;
+    if(items.length){
+      minX=1e9;minY=1e9;maxX=-1e9;maxY=-1e9;
+      items.forEach(it=>{ const w=it.type==="note"?200:290, h=it.type==="note"?150:360;
+        minX=Math.min(minX,it.x); minY=Math.min(minY,it.y); maxX=Math.max(maxX,it.x+w); maxY=Math.max(maxY,it.y+h); });
+    } else { minX=0; minY=0; maxX=CLP.EMPTY_W; maxY=CLP.EMPTY_H; }
+    if(state.stage===2){ minX=Math.min(minX,0); minY=Math.min(minY,0); maxX=Math.max(maxX,MX.W); maxY=Math.max(maxY,MX.FULLH); }
+    boxes.push({minX,minY,w:maxX-minX,h:maxY-minY});
+  }
+  return boxes;
+}
+/* реальные размеры уже отрисованных в DOM карточек команды i.
+   style.left/top в DOM — уже абсолютные (со сдвигом prevT), а layoutFromBoxes
+   ожидает координаты в локальной системе команды (как it.x/it.y) — вычитаем
+   старый сдвиг, иначе команда сместится "вдвойне". */
+function boxesFromDom(prevT){
+  const boxes=[];
+  for(let i=0;i<6;i++){
+    const els=[...world.querySelectorAll(`[data-team="${i}"]`)];
+    const ox=prevT[i]?prevT[i].x:0, oy=prevT[i]?prevT[i].y:0;
+    let minX,minY,maxX,maxY;
+    if(els.length){
+      minX=1e9;minY=1e9;maxX=-1e9;maxY=-1e9;
+      els.forEach(el=>{
+        const x=(parseFloat(el.style.left)||0)-ox, y=(parseFloat(el.style.top)||0)-oy;
+        minX=Math.min(minX,x); minY=Math.min(minY,y);
+        maxX=Math.max(maxX,x+el.offsetWidth); maxY=Math.max(maxY,y+el.offsetHeight);
+      });
+    } else { minX=0; minY=0; maxX=CLP.EMPTY_W; maxY=CLP.EMPTY_H; }
+    boxes.push({minX,minY,w:maxX-minX,h:maxY-minY});
+  }
+  return boxes;
+}
+function layoutFromBoxes(boxes){
+  const colW=[0,0,0], rowH=[0,0];
+  boxes.forEach((b,i)=>{ const c=i%3, r=i<3?0:1;
+    colW[c]=Math.max(colW[c], b.w+CLP.PAD*2);
+    rowH[r]=Math.max(rowH[r], b.h+CLP.PAD+CLP.TOPPAD);
+  });
+  const colX=[0, colW[0]+CLP.GAP, colW[0]+colW[1]+CLP.GAP*2];
+  const rowY=[40, 40+rowH[0]+CLP.GAP];
+  const map={};
+  boxes.forEach((b,i)=>{ const c=i%3, r=i<3?0:1;
+    map[i]={ x: colX[c]+CLP.PAD - b.minX, y: rowY[r]+CLP.TOPPAD - b.minY,
+             cellX:colX[c], cellY:rowY[r], cellW:colW[c], cellH:rowH[r] };
+  });
+  return map;
+}
+function computeCommonLayout(){ return layoutFromBoxes(boxesFromGuess()); }
+/* второй проход: карточки уже в DOM — меряем их настоящую высоту и
+   пересчитываем зоны/позиции так, чтобы содержимое всегда помещалось внутри. */
+function refineCommonLayout(){
+  const prevT=commonT;
+  commonT=layoutFromBoxes(boxesFromDom(prevT));
+  for(let i=0;i<6;i++){
+    const dx=commonT[i].x-(prevT[i]?prevT[i].x:0), dy=commonT[i].y-(prevT[i]?prevT[i].y:0);
+    if(!dx && !dy) continue;
+    world.querySelectorAll(`[data-team="${i}"]`).forEach(el=>{
+      el.style.left=((parseFloat(el.style.left)||0)+dx)+"px";
+      el.style.top=((parseFloat(el.style.top)||0)+dy)+"px";
+    });
+  }
+  world.querySelectorAll(".zone").forEach(n=>n.remove());
+  drawZones();
+}
+
+function drawZones(){
+  for(let i=0;i<6;i++){ const t=commonT[i]; if(!t) continue;
+    const el=document.createElement("div"); el.className="zone";
+    el.style.left=t.cellX+"px"; el.style.top=t.cellY+"px";
+    el.style.width=t.cellW+"px"; el.style.height=t.cellH+"px";
+    el.innerHTML=`<span class="zsym">${teamSymbol(i)}</span><span class="zlabel">Команда ${i+1} ${teamSymbol(i)}</span>`;
+    world.appendChild(el);
+  }
+}
+
+/* ---------- Матрица ABCDE (этап 3) ---------- */
+const ABCDE=[
+  {k:"A",title:"Самостоятельно",desc:"Безопасно; не нужны коллеги, разрешения и изменения процессов."},
+  {k:"B",title:"Внутри подразделения",desc:"Нужно участие коллег; специальные разрешения и изменения норм не требуются."},
+  {k:"C",title:"Со смежными подразделениями",desc:"Нужны коллеги и специальные разрешения; системные изменения пока не нужны."},
+  {k:"D",title:"На уровне организации",desc:"Нужны изменения процессов, правил взаимодействия или технологий."},
+  {k:"E",title:"Невозможно / нецелесообразно",desc:"Неэффективно, небезопасно или не имеет практического смысла."}
+];
+const MX={COLW:280, GAP:26, H:780, TITLEH:96};
+MX.W = 5*MX.COLW + 4*MX.GAP;         // ширина матрицы
+MX.STAGEX = MX.W + 90;               // область с задачами — правее матрицы
+MX.STAGEY = MX.TITLEH;
+MX.FULLH = MX.TITLEH + MX.H;
+
+function drawMatrix(bx,by,space){
+  const ti=document.createElement("div"); ti.className="mxtitle";
+  ti.style.left=bx+"px"; ti.style.top=by+"px";
+  ti.innerHTML=`<div class="k">Черновая гипотеза</div><h3>Матрица уровней внедрения</h3><div class="line"></div>`;
+  world.appendChild(ti);
+  ABCDE.forEach((col,i)=>{
+    const el=document.createElement("div"); el.className="mxcol"; el.dataset.c=col.k; el.dataset.space=space;
+    el.style.left=(bx+i*(MX.COLW+MX.GAP))+"px"; el.style.top=(by+MX.TITLEH)+"px";
+    el.style.width=MX.COLW+"px"; el.style.height=MX.H+"px";
+    el.innerHTML=`<div class="badge">${col.k}</div><h4>${col.title}</h4><div class="d">${col.desc}</div>
+      <div class="zt">Задачи команды</div><div class="drop"></div>`;
+    world.appendChild(el);
+  });
+}
+/* определить колонку матрицы (A–E) по позиции стикера в командных координатах.
+   Верхней границы по Y больше нет: раньше стикер, утащенный ниже фиксированной
+   высоты колонки (780px), терял привязку к колонке (matrix=null), хотя визуально
+   оставался на своём месте — теперь достаточно попадания по X, а колонка сама
+   растягивается под контент (см. refineMatrixHeights). */
+function assignMatrix(it){
+  const cx=it.x+95, cy=it.y+60;   // центр стикера
+  let col=null;
+  if(cy>=MX.TITLEH){
+    for(let i=0;i<5;i++){ const x=i*(MX.COLW+MX.GAP); if(cx>=x && cx<=x+MX.COLW){ col=ABCDE[i].k; break; } }
+  }
+  it.matrix = col;
+}
+function drawMatrixForView(){
+  if(state.space==="common"){ for(let i=0;i<6;i++){ const t=commonT[i]; if(t) drawMatrix(t.x,t.y,"team"+(i+1)); } }
+  else if(teamIndex(state.space)>=0){ drawMatrix(0,0,state.space); }
+}
+/* растянуть колонки матрицы под фактическое содержимое (после того как стикеры
+   отрисованы в DOM и у них известна настоящая высота) — та же идея, что и
+   refineCommonLayout() для зон этапа 1, только тут проще: только высота,
+   ширина и позиции колонок не меняются. */
+function refineMatrixHeights(){
+  document.querySelectorAll(".mxcol").forEach(colEl=>{
+    const colKey=colEl.dataset.c, space=colEl.dataset.space;
+    const colTop=parseFloat(colEl.style.top)||0;
+    let maxBottom=null;
+    world.querySelectorAll(".note").forEach(noteEl=>{
+      const it=state.cards[noteEl.dataset.id];
+      if(!it || !it.s3 || it.matrix!==colKey || it.space!==space) return;
+      const bottom=(parseFloat(noteEl.style.top)||0)+noteEl.offsetHeight;
+      if(maxBottom===null || bottom>maxBottom) maxBottom=bottom;
+    });
+    if(maxBottom===null) return;   // нет стикеров — оставляем высоту по умолчанию
+    const neededH=maxBottom-colTop+40;
+    if(neededH>MX.H) colEl.style.height=neededH+"px";
+  });
+}
+
+/* ---------- Итоговая матрица (этап 6) ---------- */
+const MX6_SHORT={A:"Самостоятельно",B:"Подразделение",C:"Смежные",D:"Организация",E:"Не имеет смысла"};
+const MX6_ROWS=[
+  {key:"tasks",      label:"Какие задачи можем выполнять", synced:true},
+  {key:"tools",      label:"Какие инструменты можем использовать", cls:"f-sit"},
+  {key:"conditions", label:"Какие условия нужны: что, как, чья помощь"},
+  {key:"ideas",      label:"Какие идеи предлагаем реализовать", cls:"f-chg"}
+];
+const MX6_TITLE="Итоговая матрица базовой команды";
+const MX6_SUBTITLE="Заполняйте на основе результатов проб и наблюдений всех дней";
+const MX6_FOOTER="Каждая запись должна опираться на конкретную задачу, пробу или наблюдение";
+
+/* стикеры "Задача" из всех карточек проб этапа 4 — одинаковый список для всех команд */
+function mx6TaskStickers(){
+  return Object.values(state.cards)
+    .filter(it=>it.type==="trial")
+    .map(it=>(it.data||{}).task)
+    .filter(v=>v && (""+v).trim());
+}
+/* стикеры из карточек "Какие условия нужны" этапа 5 — каждая цепочка (что/как/чья
+   помощь) со всех команд превращается в один стикер с тремя пунктами внутри */
+function mx6ConditionStickers(){
+  return Object.values(state.cards)
+    .filter(it=>it.type==="condition")
+    .map(it=>{
+      const d=it.data||{};
+      const parts=[];
+      if(d.what && (""+d.what).trim()) parts.push("Что: "+(""+d.what).trim());
+      if(d.how  && (""+d.how ).trim()) parts.push("Как: "+(""+d.how ).trim());
+      if(d.who  && (""+d.who ).trim()) parts.push("Чья помощь: "+(""+d.who ).trim());
+      return parts.join("\n");
+    })
+    .filter(v=>v && v.trim());
+}
+/* тексты стикеров этапа 3, отнесённых в колонку colKey; teamSpace — конкретная команда, либо null — по всем */
+function mx6TasksFromStage3(colKey, teamSpace){
+  return Object.values(state.cards)
+    .filter(it=>it.s3 && it.matrix===colKey && (teamSpace ? it.space===teamSpace : true))
+    .map(it=>it.text)
+    .filter(v=>v && (""+v).trim());
+}
+function mx6ReadonlyCell(text){
+  return `<div class="mx6cell mx6ro">${text&&text.trim()?`<div class="txt">${esc(text)}</div>`:`<div class="txt empty">—</div>`}</div>`;
+}
+function mx6GridHtml(getCell){
+  let html=`<div class="mx6grid"><div class="mx6cell mx6corner"></div>`;
+  ABCDE.forEach(col=>{ html+=`<div class="mx6cell mx6colhead ${col.k==="E"?"f-pink":""}">${col.k} · ${MX6_SHORT[col.k]}</div>`; });
+  MX6_ROWS.forEach(row=>{
+    html+=`<div class="mx6cell mx6rowhead ${row.cls||""}">${esc(row.label)}</div>`;
+    ABCDE.forEach(col=>{ html+=getCell(row,col); });
+  });
+  html+=`</div><div class="mx6footer">${MX6_FOOTER}</div>`;
+  return html;
+}
+/* растянуть textarea по высоте содержимого */
+function autoGrowTA(ta){ ta.style.height="auto"; ta.style.height=ta.scrollHeight+"px"; }
+/* содержимое ячейки матрицы — список отдельных пунктов (каждый в своей рамке).
+   Старые карточки хранили ячейку одной строкой текста (несколько строк через
+   \n) — при чтении раскладываем её на пункты, чтобы ничего не потерялось. */
+function mx6ItemsOf(data,rowKey,colKey){
+  const v=(data[rowKey]||{})[colKey];
+  if(Array.isArray(v)) return v;
+  if(v && (""+v).trim()) return (""+v).split("\n").map(s=>s.trim()).filter(Boolean);
+  return [];
+}
+/* стикер "использован", если его текст уже есть отдельным пунктом в каком-то поле
+   этой карточки — тогда прячем его из списка справа (он стал пунктом поля, а не
+   отдельным стикером). Чтобы вернуть стикер обратно — удалить этот пункт (крестик
+   или перетащить его на список стикеров), и на следующей отрисовке он вернётся. */
+function mx6TextIsUsed(text,data){
+  const needle=(text||"").trim();
+  if(!needle) return false;
+  return Object.values(data||{}).some(colObj=>
+    Object.values(colObj||{}).some(arr=>Array.isArray(arr) && arr.some(v=>(""+v).trim()===needle))
+  );
+}
+/* элемент, который сейчас перетаскивают ИЗ поля матрицы (чтобы можно было убрать
+   его из исходного места, если его бросят на список стикеров — "вытащили обратно") */
+let mx6DragSource=null;
+function mx6StickerGroup(wrap,title,texts,cls){
+  if(!texts.length) return;
+  const head=document.createElement("div"); head.className="mx6stickershead"; head.textContent=title;
+  wrap.appendChild(head);
+  texts.forEach(t=>{
+    const s=document.createElement("div"); s.className="mx6sticker"+(cls?" "+cls:""); s.draggable=true;
+    s.textContent=t;
+    s.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/plain",t); e.dataTransfer.effectAllowed="copy"; });
+    wrap.appendChild(s);
+  });
+}
+/* палитра стикеров справа от шаблона: задачи из проб этапа 4 и цепочки условий
+   этапа 5 — перетащенный в поле матрицы стикер становится обычной строкой текста
+   и пропадает отсюда (см. mx6TextIsUsed); data — данные текущей карточки команды
+   (null для сводного read-only вида — там показываем полный список без фильтра). */
+function renderStickerPalette(x,y,data){
+  const tasks=mx6TaskStickers().filter(t=>!mx6TextIsUsed(t,data));
+  const conditions=mx6ConditionStickers().filter(t=>!mx6TextIsUsed(t,data));
+  const wrap=document.createElement("div"); wrap.className="mx6stickers";
+  wrap.style.left=x+"px"; wrap.style.top=y+"px";
+  mx6StickerGroup(wrap,"Задачи из проб (этап 4) · перетащите в поле матрицы",tasks);
+  mx6StickerGroup(wrap,"Условия внедрения (этап 5) · перетащите в поле матрицы",conditions,"cond");
+  // сюда же можно перетащить пункт обратно из поля матрицы — он уберётся оттуда
+  wrap.addEventListener("dragover",e=>{ if(mx6DragSource){ e.preventDefault(); e.dataTransfer.dropEffect="move"; wrap.classList.add("dragover"); } });
+  wrap.addEventListener("dragleave",()=>wrap.classList.remove("dragover"));
+  wrap.addEventListener("drop",e=>{
+    e.preventDefault(); wrap.classList.remove("dragover");
+    if(!mx6DragSource) return;
+    const {it,data:srcData,rowKey,colKey,value}=mx6DragSource;
+    const arr=mx6ItemsOf(srcData,rowKey,colKey);
+    const idx=arr.indexOf(value);
+    if(idx>=0){ arr.splice(idx,1); srcData[rowKey]=srcData[rowKey]||{}; srcData[rowKey][colKey]=arr; store.upsert(it); }
+    mx6DragSource=null;
+    render();
+  });
+  world.appendChild(wrap);
+}
+/* один пункт внутри ячейки матрицы — своя рамка, можно вручную править, удалить
+   крестиком или перетащить обратно на список стикеров (см. renderStickerPalette) */
+function mx6BuildCellItems(wrap,it,data,rowKey,colKey){
+  const list=document.createElement("div"); list.className="mx6itemlist";
+  wrap.appendChild(list);
+  const save=()=>{
+    data[rowKey]=data[rowKey]||{};
+    data[rowKey][colKey]=[...list.querySelectorAll(".mx6ita")].map(t=>t.value.trim()).filter(Boolean);
+    store.upsert(it);
+  };
+  const addItem=(val)=>{
+    const row=document.createElement("div"); row.className="mx6item"; row.draggable=true;
+    row.innerHTML=`<textarea class="mx6ita" rows="1"></textarea><button type="button" class="mx6itemrm" title="Удалить">×</button>`;
+    const ta=row.querySelector(".mx6ita"); ta.value=val||"";
+    ta.addEventListener("input",()=>autoGrowTA(ta));
+    ta.addEventListener("change",()=>{ save(); render(); });
+    row.querySelector(".mx6itemrm").onclick=()=>{ row.remove(); save(); render(); };
+    row.addEventListener("dragstart",e=>{
+      e.dataTransfer.setData("text/plain",ta.value); e.dataTransfer.effectAllowed="move";
+      mx6DragSource={it,data,rowKey,colKey,value:ta.value};
+      row.classList.add("dragging");
+    });
+    row.addEventListener("dragend",()=>{ row.classList.remove("dragging"); mx6DragSource=null; });
+    list.appendChild(row);
+    return ta;
+  };
+  mx6ItemsOf(data,rowKey,colKey).forEach(addItem);
+  const add=document.createElement("button"); add.type="button"; add.className="btn small mx6itemadd"; add.textContent="+ добавить пункт";
+  add.onclick=()=>{ const ta=addItem(""); autoGrowTA(ta); ta.focus(); };
+  wrap.appendChild(add);
+  wrap.addEventListener("dragover",e=>{ e.preventDefault(); e.dataTransfer.dropEffect="copy"; wrap.classList.add("dragover"); });
+  wrap.addEventListener("dragleave",()=>wrap.classList.remove("dragover"));
+  wrap.addEventListener("drop",e=>{
+    e.preventDefault(); wrap.classList.remove("dragover");
+    const text=(e.dataTransfer.getData("text/plain")||"").trim();
+    if(!text) return;
+    addItem(text);
+    save();
+    render();
+  });
+}
+/* карточка команды — редактируемая; строка "какие задачи" вживую подтягивается из этапа 3 этой же команды */
+function renderMatrix6Card(it){
+  const data=it.data||(it.data={});
+  const el=document.createElement("div"); el.className="card mx6card"; el.dataset.id=it.id;
+  const p=posOf(it); el.style.left=p.x+"px"; el.style.top=p.y+"px";
+  el.innerHTML=`<div class="tplhead"><div class="k">Рабочий шаблон</div><div class="ttl">${MX6_TITLE}</div><div class="line"></div><div class="tplsub">${MX6_SUBTITLE}</div></div>`;
+  el.innerHTML+=mx6GridHtml((row,col)=>{
+    return `<div class="mx6cell mx6edit" data-row="${row.key}" data-col="${col.k}"></div>`;
+  });
+  el.querySelectorAll(".mx6edit").forEach(wrap=>{
+    const rk=wrap.dataset.row, ck=wrap.dataset.col;
+    const row=MX6_ROWS.find(r=>r.key===rk);
+    if(row && row.synced){
+      const synced=mx6TasksFromStage3(ck, it.space);
+      if(synced.length){
+        const box=document.createElement("div"); box.className="mx6synced";
+        synced.forEach(t=>{ const d=document.createElement("div"); d.className="mx6syncitem"; d.textContent=t; box.appendChild(d); });
+        wrap.appendChild(box);
+      }
+    }
+    mx6BuildCellItems(wrap,it,data,rk,ck);
+  });
+  makeDraggable(el,it);
+  world.appendChild(el);
+  // высоту полей считаем только теперь, когда карточка уже в DOM и scrollHeight
+  // считается верно (до appendChild элемент ещё не имеет раскладки — см. autoGrowTA в этапе 4)
+  el.querySelectorAll(".mx6ita").forEach(autoGrowTA);
+  renderStickerPalette(p.x+el.offsetWidth+40, p.y, data);
+}
+/* сводный вид на общем пространстве — только для чтения, сливает данные всех команд по каждой ячейке */
+function renderMatrix6Aggregate(){
+  const el=document.createElement("div"); el.className="card mx6card"; el.style.left="40px"; el.style.top="20px";
+  el.innerHTML=`<div class="tplhead"><div class="k">Сводно по всем командам</div><div class="ttl">${MX6_TITLE}</div><div class="line"></div></div>`;
+  el.innerHTML+=mx6GridHtml((row,col)=>{
+    const vals=row.synced ? mx6TasksFromStage3(col.k, null).slice() : [];
+    Object.values(state.cards).filter(c=>c.type==="matrix6").forEach(c=>{
+      mx6ItemsOf(c.data||{},row.key,col.k).forEach(v=>{ if(v&&(""+v).trim()) vals.push(v); });
+    });
+    return mx6ReadonlyCell(vals.join("\n"));
+  });
+  world.appendChild(el);
+  renderStickerPalette(40+el.offsetWidth+40, 20, null);
+}
+
+/* временно посчитать раскладку под другой этап */
+function withStage(s,fn){ const cur=state.stage; state.stage=s; try{ return fn(); } finally{ state.stage=cur; } }
+/* позиция стикера так, как он лежит на этапе 2 */
+function stage2PosOf(note){
+  return withStage(1, ()=>{
+    if(note.s2x!=null) return {x:note.s2x, y:note.s2y};
+    const t=computeCommonLayout(); const off=t[teamIndex(note.space)]||{x:0,y:0};
+    return {x:off.x+note.x, y:off.y+note.y};
+  });
+}
+/* в каждой команде этапа 5 сразу лежит карточка-шаблон условий внедрения (один раз).
+   Перед проверкой "уже создана?" подтягиваем свежие карточки из Supabase, а не
+   доверяем локальному кэшу — иначе разные участники, зашедшие раньше, чем их
+   браузер догрузил данные, независимо решают, что карточки ещё нет, и плодят
+   дубли (см. тот же баг и его разбор в seedStage4). */
+/* id первой авто-созданной карточки детерминирован (не uid()) — если два участника
+   одновременно решат, что карточки ещё нет, оба "создадут" одну и ту же строку
+   (id совпадёт), и upsert в Supabase просто дважды запишет один и тот же ряд,
+   а не породит дубль. Без этого гонка возможна даже с подгрузкой свежих данных,
+   если оба запроса пришли почти одновременно (см. жалобу про дубли на этапе 6). */
+async function seedStage5(){
+  const fresh = await store.fetchAllCards();
+  fresh.forEach(c=>{ state.cards[c.id]=c; });
+  TEAM_SPACES.forEach(sp=>{
+    let c=Object.values(state.cards).find(it=>it.type==="condition"&&it.space===sp.id);
+    if(!c){ c={id:"cond-"+sp.id,type:"condition",space:sp.id,x:40,y:40,data:{}}; state.cards[c.id]=c; store.upsert(c); }
+  });
+  render();
+}
+async function seedStage6(){
+  const fresh = await store.fetchAllCards();
+  fresh.forEach(c=>{ state.cards[c.id]=c; });
+  TEAM_SPACES.forEach(sp=>{
+    let c=Object.values(state.cards).find(it=>it.type==="matrix6"&&it.space===sp.id);
+    if(!c){ c={id:"mx6-"+sp.id,type:"matrix6",space:sp.id,x:40,y:40,data:{}}; state.cards[c.id]=c; store.upsert(c); }
+  });
+  render();
+}
+
+/* в каждой группе этапа 4 сразу лежат обе карточки-шаблона (один раз).
+   Раньше проверка "уже создана?" шла по локальному кэшу браузера и запускалась
+   у КАЖДОГО участника при каждом заходе на вкладку — если чей-то браузер ещё
+   не догрузил существующие карточки (сразу после открытия страницы), он решал,
+   что карточки нет, и создавал новую. При этом позиция выставлялась безусловно
+   каждый раз, из-за чего несколько независимо созданных дублей стягивались в
+   одну и ту же точку (40,40) и накладывались друг на друга — участникам казалось,
+   что часть данных пропала (на самом деле она осталась в скрытом под дублем
+   экземпляре) и часть размножилась. Теперь: (1) сначала подтягиваем свежие
+   карточки прямо из Supabase, а не из кэша; (2) позицию выставляем только при
+   первом создании, а не на каждый заход. */
+async function seedStage4(){
+  const fresh = await store.fetchAllCards();
+  fresh.forEach(c=>{ state.cards[c.id]=c; });
+  GROUPS.forEach(g=>{
+    let t=Object.values(state.cards).find(it=>it.type==="trial"&&it.space===g.id);
+    let f=Object.values(state.cards).find(it=>it.type==="fieldnotes"&&it.space===g.id);
+    if(!t){ t={id:"trial-"+g.id,type:"trial",space:g.id,x:40,y:40,data:{}}; state.cards[t.id]=t; store.upsert(t); }
+    if(!f){ f={id:"fn-"+g.id,type:"fieldnotes",space:g.id,x:720,y:40,data:{}}; state.cards[f.id]=f; store.upsert(f); }
+  });
+  render();
+}
+
+/* создать в пространстве каждой команды копии всех задач этапа 2.
+   Раньше запускалось само при заходе на вкладку "Матрица ABCDE" у ЛЮБОГО
+   участника — и поскольку у каждого браузера свой, не всегда полностью
+   догруженный локальный список стикеров, разные команды получали разные,
+   неполные наборы копий (гонка между клиентами). Теперь вызывается только
+   вручную ведущим через syncStage3(), которая заранее подтягивает
+   актуальные данные из Supabase. forceAll=true игнорирует проверку
+   "уже скопировано" и пересобирает копии для всех команд заново.
+   ============================================================ */
+function seedStage3(forceAll){
+  const sources=Object.values(state.cards).filter(it=>it.type==="note" && !it.s3);
+  if(!sources.length) return;
+  const poss=sources.map(stage2PosOf);
+  const minX=Math.min(...poss.map(p=>p.x)), minY=Math.min(...poss.map(p=>p.y));
+  for(let t=0;t<6;t++){
+    if(!forceAll){
+      const has=Object.values(state.cards).some(it=>it.s3 && it.space==="team"+(t+1));
+      if(has) continue;
+    }
+    sources.forEach((src,i)=>{
+      const p=poss[i];
+      const it={id:uid(), type:"note", space:"team"+(t+1), s3:true, from_note:src.id,
+        text:src.text, color:src.color,
+        x: MX.STAGEX + (p.x-minX), y: MX.STAGEY + (p.y-minY)};
+      state.cards[it.id]=it; store.upsert(it);
+    });
+  }
+}
+/* явная, безопасная пересборка матрицы этапа 3 ведущим:
+   1) подтягивает актуальные карточки из Supabase (не из локального кэша),
+   2) удаляет старые копии этапа 3 (в БД и локально),
+   3) заново копирует ВСЕ текущие стикеры этапа 2 во все 6 команд. */
+async function syncStage3(){
+  if(!state.isMaster) return;
+  if(!confirm("Пересобрать матрицу этапа 3 из текущих стикеров этапа 2 для всех 6 команд?\nСтарые копии на этапе 3 будут удалены.")) return;
+  const btn=$("#syncStage3Btn");
+  if(btn){ btn.disabled=true; btn.textContent="Синхронизация…"; }
+  try{
+    const fresh = await store.fetchAllCards();
+    fresh.forEach(c=>{ state.cards[c.id]=c; });
+    Object.keys(state.cards).forEach(id=>{
+      if(state.cards[id].s3 && !fresh.some(c=>c.id===id)) delete state.cards[id];
+    });
+    await store.clearStage3();
+    Object.keys(state.cards).forEach(id=>{ if(state.cards[id].s3) delete state.cards[id]; });
+    seedStage3(true);
+    render();
+    alert("Готово: стикеры этапа 2 скопированы в матрицу для всех 6 команд.");
+  } catch(e){
+    console.error(e);
+    alert("Ошибка синхронизации: "+(e && e.message ? e.message : e));
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent="Скопировать стикеры этапа 2 → Матрица"; }
+  }
+}
+
+function esc(t){return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* агрегирован ли элемент в общем пространстве (пришёл из команды) */
+function isAgg(it){ return state.space==="common" && teamIndex(it.space)>=0; }
+function posOf(it){
+  if(isAgg(it)){
+    if(tasksOnly() && it.s2x!=null) return {x:it.s2x, y:it.s2y};   // этап 2 — собственная раскладка
+    const t=commonT[teamIndex(it.space)]||{x:0,y:0};
+    return {x:t.x+it.x, y:t.y+it.y};                               // этап 3+ — живое зеркало
+  }
+  return {x:it.x,y:it.y};
+}
+
+function render(){
+  // фоновый лесной символ пространства
+  $("#watermark").textContent = state.space==="common" ? "" : symbolForSpace(state.space);
+  // видимость кнопок панели по этапу
+  $("#addCardBtn").style.display = state.stage>=1 ? "none" : "";
+  $("#addNoteBtn").style.display = state.stage===3 ? "none" : "";
+  const s4group = state.stage===3 && state.space!=="common";
+  $("#addTrialBtn").style.display = s4group ? "" : "none";
+  $("#addFnBtn").style.display   = "none";
+  const s5group = state.stage===4 && state.space!=="common";
+  $("#addConditionBtn").style.display = s5group ? "" : "none";
+  // список пространств зависит от этапа
+  populateSpaceSelector();
+  // stages tabs
+  const st = $("#stages"); st.innerHTML="";
+  STAGES.forEach((s,i)=>{
+    const locked = i > state.unlocked;
+    const b=document.createElement("button");
+    b.className="stage-tab"+(i===state.stage?" active":"")+(locked?" locked":"");
+    b.innerHTML=`<span class="num">${locked?"🔒":s.n}</span>${s.title}`;
+    b.onclick=()=>{ if(locked) return; goToStage(i); };
+    st.appendChild(b);
+  });
+  // cards
+  world.querySelectorAll(".card,.note,.zone,.mxcol,.mxtitle,.mx6stickers").forEach(n=>n.remove());
+  if(state.stage===3 && state.space==="common"){
+    renderStage4Aggregate();
+  } else if(state.stage===4 && state.space==="common"){
+    renderStage5Aggregate();
+  } else if(state.stage===5 && state.space==="common"){
+    renderMatrix6Aggregate();
+  } else {
+    if(state.space==="common"){ commonT=computeCommonLayout(); drawZones(); }
+    if(state.stage===2) drawMatrixForView();
+    visibleItems().forEach(renderItem);
+    if(state.space==="common" && state.stage===0) refineCommonLayout();
+    if(state.stage===2) refineMatrixHeights();
+  }
+  // space selector value
+  $("#spaceSel").value = state.space;
+  // master stages
+  renderMasterStages();
+  applyView();
+}
+
+/* набор пространств для текущего этапа */
+const STAGE_AGG_LABEL={3:"Общее · Полевые заметки", 4:"Общее · Условия", 5:"Общее · Итоговая матрица"};
+function currentSpaces(){
+  if(state.stage===3) return GROUPS.concat([{id:"common", name:STAGE_AGG_LABEL[3]}]);
+  if(state.stage===4||state.stage===5) return TEAM_SPACES.concat([{id:"common", name:STAGE_AGG_LABEL[state.stage]}]);
+  return SPACES;
+}
+function populateSpaceSelector(){
+  const sp=$("#spaceSel");
+  if(sp.dataset.stage!==String(state.stage)){
+    sp.innerHTML="";
+    currentSpaces().forEach(s=>{ const o=document.createElement("option"); o.value=s.id; o.textContent=s.name; sp.appendChild(o); });
+    sp.dataset.stage=String(state.stage);
+  }
+}
+function symbolForSpace(id){
+  const ti=teamIndex(id); if(ti>=0) return SYMBOLS[ti];
+  const g=/^group(\d+)$/.exec(id||""); if(g) return GROUP_SYMBOLS[parseInt(g[1],10)-1]||"";
+  return "";
+}
+
+function renderItem(it){
+  if(it.type==="note") return renderNote(it);
+  if(it.type==="trial"||it.type==="fieldnotes"||it.type==="condition") return renderTplCard(it);
+  if(it.type==="matrix6") return renderMatrix6Card(it);
+  const el=document.createElement("div");
+  el.className="card"; el.dataset.id=it.id;
+  if(isAgg(it)) el.dataset.team=teamIndex(it.space);
+  const p=posOf(it); el.style.left=p.x+"px"; el.style.top=p.y+"px";
+  const f=(v)=>v&&v.trim()?`<div class="txt">${esc(v)}</div>`:`<div class="txt empty">—</div>`;
+  const tasks=normTasks(it.tasks);
+  let tasksHtml;
+  if(tasks.length){
+    tasksHtml=`<ol class="tasks">`+tasks.map((t,i)=>
+      `<li><span class="tt">${esc(t)}</span><button class="pop" data-i="${i}" title="Вынести задачу на стикер">↗</button></li>`
+    ).join("")+`</ol>`;
+  } else {
+    tasksHtml=`<div class="txt empty tasksempty">—</div>`;
+  }
+  el.innerHTML=`
+    <div class="chd"><span class="tag">Ситуация</span>${it.author?`<span class="who">${esc(it.author)}</span>`:""}<button class="del" title="Удалить">×</button></div>
+    <div class="fld f-sit"><div class="lbl">Ситуация</div>${f(it.situation)}</div>
+    <div class="fld f-val"><div class="lbl">Для кого ценность</div>${f(it.value_for)}</div>
+    <div class="fld f-chg"><div class="lbl">Что должно измениться</div>${f(it.change)}</div>
+    <div class="fld f-task"><div class="lbl">Какие задачи</div>${tasksHtml}</div>`;
+  el.querySelectorAll(".pop").forEach(b=>b.onclick=(e)=>{e.stopPropagation();promoteTask(it,parseInt(b.dataset.i,10));});
+  el.querySelector(".del").onclick=(e)=>{e.stopPropagation();delItem(it.id);};
+  el.ondblclick=()=>openCard(it.id);
+  makeDraggable(el,it);
+  world.appendChild(el);
+}
+function renderNote(it){
+  const el=document.createElement("div");
+  el.className="note"; el.dataset.id=it.id; el.dataset.color=it.color||"yellow";
+  if(isAgg(it)) el.dataset.team=teamIndex(it.space);
+  const p=posOf(it); el.style.left=p.x+"px"; el.style.top=p.y+"px";
+  const mb = it.matrix ? `<span class="mbadge">${it.matrix}</span>` : "";
+  el.innerHTML=`<button class="del">×</button>${mb}${esc(it.text)||'<span style="color:#b7a94e">двойной клик — правка</span>'}`;
+  el.querySelector(".del").onclick=(e)=>{e.stopPropagation();delItem(it.id);};
+  el.ondblclick=()=>openNote(it.id);
+  makeDraggable(el,it);
+  world.appendChild(el);
+}
+
+/* карточки этапа 4 (проба / полевые заметки) */
+function tplFieldHtml(f,v){
+  let inner;
+  if(f.list){ const arr=Array.isArray(v)?v:(v?[v]:[]);
+    inner = arr.length ? `<ol class="tasks nopop">`+arr.map(t=>`<li><span class="tt">${esc(t)}</span></li>`).join("")+`</ol>`
+                       : `<div class="txt empty">—</div>`;
+  } else { inner = (v&&(""+v).trim()) ? `<div class="txt">${esc(v)}</div>` : `<div class="txt empty">—</div>`; }
+  return `<div class="fld ${f.cls||'f-task'}"><div class="lbl">${f.label}</div>${inner}</div>`;
+}
+function renumInline(rows){ rows.querySelectorAll(".irow .num").forEach((n,i)=>n.textContent=(i+1)+"."); }
+/* карточки этапа 4 — редактируются прямо в пространстве */
+function renderTplCard(it){
+  const tpl=TEMPLATES[it.type]; const data=it.data||(it.data={});
+  const el=document.createElement("div"); el.className="card tplcard"; el.dataset.id=it.id;
+  const p=posOf(it); el.style.left=p.x+"px"; el.style.top=p.y+"px";
+
+  const head=document.createElement("div"); head.className="tplhead";
+  head.innerHTML=`<div class="k">${tpl.kicker}</div><div class="ttl">${tpl.title}</div><div class="line"></div><div class="tplsub">${tpl.subtitle}</div>`;
+  if(it.type==="trial"||it.type==="condition"){
+    const label=it.type==="trial"?"карточку пробы":"карточку условия";
+    const del=document.createElement("button"); del.className="tpldel"; del.textContent="×"; del.title="Удалить эту "+label;
+    del.onclick=(e)=>{ e.stopPropagation(); if(confirm("Удалить эту "+label+"?")) delItem(it.id); };
+    head.appendChild(del);
+  }
+  el.appendChild(head);
+
+  tpl.fields.forEach(f=>{
+    const fld=document.createElement("div"); fld.className="fld "+(f.cls||"f-task");
+    fld.innerHTML=`<div class="lbl">${f.label}</div>${f.hint?`<div class="fhint">${f.hint}</div>`:""}`;
+    if(f.list){
+      const rows=document.createElement("div"); rows.className="ilist";
+      const save=()=>{ data[f.key]=[...rows.querySelectorAll("textarea")].map(t=>t.value.trim()).filter(Boolean); store.upsert(it); };
+      const addRow=(val)=>{
+        const row=document.createElement("div"); row.className="irow";
+        row.innerHTML=`<span class="num"></span><textarea rows="1" placeholder="…"></textarea><button class="rm" title="Удалить">×</button>`;
+        const ta=row.querySelector("textarea"); ta.value=val||"";
+        ta.addEventListener("change",save);
+        ta.addEventListener("input",()=>autoGrowTA(ta));
+        row.querySelector(".rm").onclick=()=>{ row.remove(); renumInline(rows); save(); };
+        rows.appendChild(row); renumInline(rows);
+      };
+      const arr=Array.isArray(data[f.key])?data[f.key]:[];
+      (arr.length?arr:[""]).forEach(addRow);
+      fld.appendChild(rows);
+      const add=document.createElement("button"); add.className="btn small iadd"; add.textContent="+ добавить пункт";
+      add.onclick=()=>{ addRow(""); const t=rows.querySelectorAll("textarea"); t[t.length-1].focus(); };
+      fld.appendChild(add);
+    } else {
+      const ta=document.createElement("textarea"); ta.className="ita"; ta.rows=2; ta.value=data[f.key]||"";
+      ta.addEventListener("change",()=>{ data[f.key]=ta.value; store.upsert(it); });
+      ta.addEventListener("input",()=>autoGrowTA(ta));
+      fld.appendChild(ta);
+    }
+    el.appendChild(fld);
+  });
+
+  el.style.width="620px";
+  makeDraggable(el,it);
+  world.appendChild(el);
+  // подогнать высоту всех полей под уже сохранённый текст (при вводе высота растёт
+  // сама по событию input, но для загруженных из БД данных input не срабатывает —
+  // без этого многострочный текст обрезался бы, как жаловались участники)
+  el.querySelectorAll("textarea").forEach(autoGrowTA);
+}
+/* общее пространство этапа 4 — сводная карточка полевых заметок */
+function renderStage4Aggregate(){
+  const tpl=TEMPLATES.fieldnotes;
+  const notes=Object.values(state.cards).filter(it=>it.type==="fieldnotes");
+  const el=document.createElement("div"); el.className="card tplcard"; el.style.left="40px"; el.style.top="20px"; el.style.width="640px";
+  let html=`<div class="tplhead"><div class="k">Сводно по всем группам</div><div class="ttl">Полевые заметки</div><div class="line"></div></div>`;
+  tpl.fields.forEach(f=>{
+    let entries=[];
+    notes.forEach(n=>{ const v=(n.data||{})[f.key]; const arr=Array.isArray(v)?v:(v?[v]:[]); arr.forEach(x=>{ if(x&&(""+x).trim()) entries.push(x); }); });
+    html+=tplFieldHtml(f, entries);
+  });
+  el.innerHTML=html;
+  world.appendChild(el);
+}
+/* общее пространство этапа 5 — сводная карточка условий внедрения по всем группам */
+function renderStage5Aggregate(){
+  const tpl=TEMPLATES.condition;
+  const items=Object.values(state.cards).filter(it=>it.type==="condition");
+  const el=document.createElement("div"); el.className="card tplcard"; el.style.left="40px"; el.style.top="20px"; el.style.width="640px";
+  let html=`<div class="tplhead"><div class="k">Сводно по всем группам</div><div class="ttl">${tpl.title}</div><div class="line"></div></div>`;
+  tpl.fields.forEach(f=>{
+    let entries=[];
+    items.forEach(n=>{ const v=(n.data||{})[f.key]; const arr=Array.isArray(v)?v:(v?[v]:[]); arr.forEach(x=>{ if(x&&(""+x).trim()) entries.push(x); }); });
+    html+=tplFieldHtml({...f, list:true}, entries);  // сводный вид всегда списком, даже если поле карточки — одиночное значение
+  });
+  el.innerHTML=html;
+  world.appendChild(el);
+}
+
+/* ============================================================
+   Перетаскивание элементов
+   ============================================================ */
+function makeDraggable(el,it){
+  el.addEventListener("pointerdown",(e)=>{
+    if(e.target.closest(".del,.pop,textarea,input,button,.ilist")) return;
+    e.stopPropagation();
+    el.setPointerCapture(e.pointerId);
+    el.style.cursor="grabbing";
+    const startX=e.clientX, startY=e.clientY;
+    const ox=parseFloat(el.style.left)||0, oy=parseFloat(el.style.top)||0;
+    let nx=ox, ny=oy;
+    const move=(ev)=>{
+      nx=ox+(ev.clientX-startX)/state.view.k;
+      ny=oy+(ev.clientY-startY)/state.view.k;
+      el.style.left=nx+"px"; el.style.top=ny+"px";
+    };
+    const up=()=>{
+      el.removeEventListener("pointermove",move);
+      el.removeEventListener("pointerup",up);
+      el.style.cursor="grab";
+      if(nx!==ox||ny!==oy){
+        if(isAgg(it)){
+          if(tasksOnly()){ it.s2x=nx; it.s2y=ny; }                                 // этап 2 — не трогаем команду
+          else { const t=commonT[teamIndex(it.space)]||{x:0,y:0}; it.x=nx-t.x; it.y=ny-t.y; }
+        }
+        else { it.x=nx; it.y=ny; }
+        if(it.s3 && state.stage===2){ assignMatrix(it); render(); }  // привязка к колонке матрицы
+        store.upsert(it);
+      }
+    };
+    el.addEventListener("pointermove",move);
+    el.addEventListener("pointerup",up);
+  });
+}
+
+/* ============================================================
+   Панорама и зум канваса
+   ============================================================ */
+canvas.addEventListener("pointerdown",(e)=>{
+  if(e.target!==canvas && e.target!==world) return;
+  canvas.classList.add("grabbing");
+  const sx=e.clientX, sy=e.clientY, ox=state.view.x, oy=state.view.y;
+  const move=(ev)=>{ state.view.x=ox+(ev.clientX-sx); state.view.y=oy+(ev.clientY-sy); applyView(); };
+  const up=()=>{ canvas.classList.remove("grabbing"); window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up); };
+  window.addEventListener("pointermove",move);
+  window.addEventListener("pointerup",up);
+});
+canvas.addEventListener("wheel",(e)=>{
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const factor = e.deltaY<0 ? 1.1 : 1/1.1;
+  const nk=Math.min(2.5,Math.max(0.15,state.view.k*factor));
+  const wx=(mx-state.view.x)/state.view.k, wy=(my-state.view.y)/state.view.k;
+  state.view.k=nk; state.view.x=mx-wx*nk; state.view.y=my-wy*nk;
+  applyView();
+},{passive:false});
+
+function zoomBy(f){
+  const rect=canvas.getBoundingClientRect();
+  const mx=rect.width/2, my=rect.height/2;
+  const nk=Math.min(2.5,Math.max(0.15,state.view.k*f));
+  const wx=(mx-state.view.x)/state.view.k, wy=(my-state.view.y)/state.view.k;
+  state.view.k=nk; state.view.x=mx-wx*nk; state.view.y=my-wy*nk; applyView();
+}
+$("#zoomIn").onclick=()=>zoomBy(1.2);
+$("#zoomOut").onclick=()=>zoomBy(1/1.2);
+$("#fitBtn").onclick=fitAll;
+function fitAll(){
+  const rect=canvas.getBoundingClientRect();
+  const els=[...world.querySelectorAll(".card,.note,.zone,.mxcol,.mxtitle,.mx6stickers")];
+  if(!els.length){ state.view={x:40,y:20,k:1}; applyView(); return; }
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  els.forEach(el=>{ const x=parseFloat(el.style.left)||0, y=parseFloat(el.style.top)||0;
+    const w=el.offsetWidth||el.getBoundingClientRect().width, h=el.offsetHeight||el.getBoundingClientRect().height;
+    minX=Math.min(minX,x); minY=Math.min(minY,y); maxX=Math.max(maxX,x+w); maxY=Math.max(maxY,y+h);});
+  const pad=60; const bw=maxX-minX+pad*2, bh=maxY-minY+pad*2;
+  const k=Math.min(2.5,Math.max(0.1,Math.min(rect.width/bw,rect.height/bh)));
+  state.view.k=k; state.view.x=(rect.width-bw*k)/2 - (minX-pad)*k; state.view.y=(rect.height-bh*k)/2 - (minY-pad)*k;
+  applyView();
+}
+
+/* ============================================================
+   Создание / редактирование
+   ============================================================ */
+function centerWorld(){
+  const rect=canvas.getBoundingClientRect();
+  return {x:(rect.width/2-state.view.x)/state.view.k-140, y:(rect.height/2-state.view.y)/state.view.k-40};
+}
+let editingId=null, noteColor="yellow";
+
+/* --- динамические строки задач в форме --- */
+function addTaskRow(value){
+  const wrap=$("#taskRows");
+  const row=document.createElement("div"); row.className="taskrow";
+  row.innerHTML=`<span class="num"></span><textarea rows="1" placeholder="Задача…"></textarea><button type="button" class="rm" title="Удалить строку">×</button>`;
+  row.querySelector("textarea").value=value||"";
+  row.querySelector(".rm").onclick=()=>{ row.remove(); renumberTaskRows(); };
+  wrap.appendChild(row);
+  renumberTaskRows();
+}
+function renumberTaskRows(){
+  $("#taskRows").querySelectorAll(".taskrow .num").forEach((n,i)=>n.textContent=(i+1)+".");
+}
+function setTaskRows(arr){
+  $("#taskRows").innerHTML="";
+  const list = arr && arr.length ? arr : [""];
+  list.forEach(v=>addTaskRow(v));
+}
+function collectTaskRows(){
+  return [...$("#taskRows").querySelectorAll("textarea")].map(t=>t.value.trim()).filter(Boolean);
+}
+$("#addTaskRow").onclick=()=>{ addTaskRow(""); const rows=$("#taskRows").querySelectorAll("textarea"); rows[rows.length-1].focus(); };
+
+function openCard(id){
+  editingId=id;
+  const it=id?state.cards[id]:null;
+  $("#fName").value=it?it.author||"":"";
+  $("#fSit").value=it?it.situation||"":"";
+  $("#fVal").value=it?it.value_for||"":"";
+  $("#fChg").value=it?it.change||"":"";
+  setTaskRows(normTasks(it?it.tasks:[]));
+  $("#cardOverlay").classList.add("open");
+  setTimeout(()=>$("#fSit").focus(),50);
+}
+$("#addCardBtn").onclick=()=>openCard(null);
+$("#cardCancel").onclick=()=>$("#cardOverlay").classList.remove("open");
+$("#cardSave").onclick=()=>{
+  const data={author:$("#fName").value,situation:$("#fSit").value,value_for:$("#fVal").value,change:$("#fChg").value,tasks:collectTaskRows()};
+  if(editingId){ Object.assign(state.cards[editingId],data); store.upsert(state.cards[editingId]); }
+  else{
+    const p=centerWorld();
+    const it={id:uid(),type:"card",space:state.space,stage:state.stage+1,x:p.x,y:p.y,...data};
+    state.cards[it.id]=it; store.upsert(it);
+  }
+  $("#cardOverlay").classList.remove("open"); render();
+};
+
+function openNote(id){
+  editingId=id;
+  const it=id?state.cards[id]:null;
+  $("#nText").value=it?it.text||"":"";
+  noteColor=it?it.color||"yellow":"yellow";
+  $("#noteOverlay").classList.add("open");
+  setTimeout(()=>$("#nText").focus(),50);
+}
+$("#addNoteBtn").onclick=()=>openNote(null);
+$("#noteCancel").onclick=()=>$("#noteOverlay").classList.remove("open");
+$("#noteColors").querySelectorAll("button").forEach(b=>b.onclick=()=>{noteColor=b.dataset.c;});
+$("#noteSave").onclick=()=>{
+  const text=$("#nText").value;
+  if(editingId){ const it=state.cards[editingId]; it.text=text; it.color=noteColor; store.upsert(it); }
+  else{ const p=centerWorld(); const it={id:uid(),type:"note",space:state.space,stage:state.stage+1,x:p.x,y:p.y,text,color:noteColor, ...(state.stage===2?{s3:true}:{})};
+    state.cards[it.id]=it; store.upsert(it); }
+  $("#noteOverlay").classList.remove("open"); render();
+};
+
+/* нормализовать задачи в массив строк (совместимость со старым текстовым форматом) */
+function normTasks(v){
+  if(Array.isArray(v)) return v.map(s=>(s||"").trim()).filter(Boolean);
+  if(typeof v==="string") return v.split(/\r?\n/)
+    .map(l=>l.replace(/^\s*(?:\d+[\.\)]|[-–—•*])\s*/,"").trim()).filter(Boolean);
+  return [];
+}
+/* вынести одну задачу карточки на отдельный стикер */
+function promoteTask(card,index){
+  const tasks=normTasks(card.tasks);
+  const t=tasks[index]; if(!t) return;
+  const siblings=Object.values(state.cards).filter(n=>n.type==="note"&&n.from_card===card.id).length;
+  const it={id:uid(),type:"note",space:card.space,stage:state.stage+1,
+    x:card.x+300+(siblings%3)*205, y:card.y+Math.floor(siblings/3)*140,
+    text:t, color:"green", from_card:card.id};
+  state.cards[it.id]=it; store.upsert(it); render();
+}
+
+/* ---------- Генерик-редактор шаблонов этапа 4 ---------- */
+function addListRow(cont,val){
+  const row=document.createElement("div"); row.className="taskrow";
+  row.innerHTML=`<span class="num"></span><textarea rows="1" placeholder="…"></textarea><button type="button" class="rm" title="Удалить">×</button>`;
+  row.querySelector("textarea").value=val||"";
+  row.querySelector(".rm").onclick=()=>{ row.remove(); renumberList(cont); };
+  cont.appendChild(row); renumberList(cont);
+}
+function renumberList(cont){ cont.querySelectorAll(".taskrow .num").forEach((n,i)=>n.textContent=(i+1)+"."); }
+function setListRows(cont,arr){ cont.innerHTML=""; (arr&&arr.length?arr:[""]).forEach(v=>addListRow(cont,v)); }
+
+let tplType=null, tplId=null;
+function openTpl(type,id){
+  tplType=type; tplId=id;
+  const tpl=TEMPLATES[type];
+  $("#tplKicker").textContent=tpl.kicker; $("#tplTitle").textContent=tpl.title; $("#tplSub").textContent=tpl.subtitle;
+  const it=id?state.cards[id]:null; const data=(it&&it.data)||{};
+  const body=$("#tplBody"); body.innerHTML="";
+  tpl.fields.forEach(f=>{
+    const wrap=document.createElement("div"); wrap.className="field "+(f.cls||"f-task");
+    wrap.dataset.key=f.key; wrap.dataset.list=f.list?"1":"";
+    wrap.innerHTML=`<label>${f.label}</label>${f.hint?`<div class="hint">${f.hint}</div>`:""}`;
+    if(f.list){
+      const rows=document.createElement("div"); rows.className="listrows"; wrap.appendChild(rows);
+      const arr=Array.isArray(data[f.key])?data[f.key]:(data[f.key]?[data[f.key]]:[]);
+      setListRows(rows,arr);
+      const add=document.createElement("button"); add.type="button"; add.className="btn small"; add.textContent="+ добавить пункт";
+      add.onclick=()=>{ addListRow(rows,""); const t=rows.querySelectorAll("textarea"); t[t.length-1].focus(); };
+      wrap.appendChild(add);
+    } else {
+      const ta=document.createElement("textarea"); ta.rows=2; ta.value=data[f.key]||""; wrap.appendChild(ta);
+    }
+    body.appendChild(wrap);
+  });
+  $("#tplOverlay").classList.add("open");
+}
+$("#tplCancel").onclick=()=>$("#tplOverlay").classList.remove("open");
+/* добавить ещё одну карточку пробы в текущую группу (заполняется на месте) */
+function addTrialCard(){
+  if(!/^group\d+$/.test(state.space)) return;
+  const n=Object.values(state.cards).filter(it=>it.type==="trial"&&it.space===state.space).length;
+  const it={id:uid(), type:"trial", space:state.space, x:40, y:40+n*820, data:{}};
+  state.cards[it.id]=it; store.upsert(it); render();
+}
+/* добавить ещё одну карточку условия (одна цепочка что-как-чья помощь) в текущую команду */
+function addConditionCard(){
+  if(!/^team[1-6]$/.test(state.space)) return;
+  const n=Object.values(state.cards).filter(it=>it.type==="condition"&&it.space===state.space).length;
+  const it={id:uid(), type:"condition", space:state.space, x:40, y:40+n*560, data:{}};
+  state.cards[it.id]=it; store.upsert(it); render();
+}
+$("#addTrialBtn").onclick=addTrialCard;
+$("#addFnBtn").onclick=()=>openTpl("fieldnotes",null);
+$("#addConditionBtn").onclick=addConditionCard;
+$("#tplSave").onclick=()=>{
+  const data={};
+  $("#tplBody").querySelectorAll(".field").forEach(w=>{
+    const key=w.dataset.key;
+    if(w.dataset.list){ data[key]=[...w.querySelectorAll(".listrows textarea")].map(t=>t.value.trim()).filter(Boolean); }
+    else { data[key]=w.querySelector("textarea").value; }
+  });
+  if(tplId){ state.cards[tplId].data=data; store.upsert(state.cards[tplId]); }
+  else { const p=centerWorld(); const it={id:uid(),type:tplType,space:state.space,x:p.x,y:p.y,data}; state.cards[it.id]=it; store.upsert(it); }
+  $("#tplOverlay").classList.remove("open"); render();
+};
+
+function delItem(id){
+  const it=state.cards[id]; if(!it) return;
+  delete state.cards[id]; store.remove(id); render();
+  lastDeleted=it; // для Ctrl+Z
+}
+let lastDeleted=null;
+document.addEventListener("keydown",(e)=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="z"&&lastDeleted){
+    state.cards[lastDeleted.id]=lastDeleted; store.upsert(lastDeleted); lastDeleted=null; render();
+  }
+});
+
+/* ---------- space selector ---------- */
+const sel=$("#spaceSel");
+sel.onchange=()=>{
+  state.space=sel.value; state.view={x:40,y:20,k:1}; render();
+  requestAnimationFrame(fitAll);
+};
+
+/* ---------- banner ---------- */
+function showBanner(){ $("#bannerText").innerHTML=STAGES[state.stage].text; $("#banner").classList.remove("hidden"); }
+/* переход между этапами: этапы 2+ — общий агрегированный вид, этап 1 — пространства команд */
+function goToStage(i){
+  const isGroup=/^group\d+$/.test(state.space);
+  const isTeam=/^team[1-6]$/.test(state.space);
+  state.stage=i;
+  if(i===3){ if(!isGroup) state.space="group1"; }         // этап 4 — по группам
+  else if(i===4||i===5){ if(!isTeam) state.space="team1"; } // этапы 5-6 — по командам
+  else if(i===1){ state.space="common"; }            // этап 2 — только общий вид
+  else if(isGroup || state.space==="common"){ state.space="team1"; } // возврат к командам
+  if(i===3) seedStage4();
+  if(i===4) seedStage5();
+  if(i===5) seedStage6();
+  state.view={x:40,y:20,k:1};
+  showBanner(); render();
+  requestAnimationFrame(fitAll);
+}
+$("#bannerClose").onclick=()=>$("#banner").classList.add("hidden");
+
+/* ============================================================
+   Панель ведущего
+   ============================================================ */
+function initMaster(){
+  const params=new URLSearchParams(location.search);
+  if(params.get("master")==="1" || params.has("master")){
+    const pass=prompt("Пароль ведущего:");
+    if(pass===MASTER_PASSWORD){ state.isMaster=true; $("#masterFab").style.display="inline-block"; }
+    else if(pass!==null){ alert("Неверный пароль."); }
+  }
+  applyMasterUITimer();
+}
+$("#masterFab").onclick=()=>{ const p=$("#masterPanel"); p.style.display = p.style.display==="block"?"none":"block"; renderMasterStages(); };
+$("#syncStage3Btn").onclick=syncStage3;
+function renderMasterStages(){
+  if(!state.isMaster) return;
+  const box=$("#mstages"); box.innerHTML="";
+  STAGES.forEach((s,i)=>{
+    const open=i<=state.unlocked;
+    const row=document.createElement("div"); row.className="mstage";
+    row.innerHTML=`<span class="st-name">${s.n}. ${s.title}</span>
+      <span class="st-badge ${open?'open':''}">${open?'открыт':'закрыт'}</span>`;
+    const btn=document.createElement("button"); btn.className="btn small";
+    btn.textContent = open ? "Закрыть" : "Открыть";
+    btn.onclick=()=>{ setUnlocked(open ? i-1 : i); };
+    row.appendChild(btn); box.appendChild(row);
+  });
+}
+function setUnlocked(v){
+  v=Math.max(0,Math.min(STAGES.length-1,v));
+  state.unlocked=v; store.setStage(v); render();
+}
+
+/* ============================================================
+   Таймер (в правом верхнем углу, на всех этапах) — общий для всех
+   пространств, синхронизируется через store (Supabase realtime /
+   BroadcastChannel). Управлять может только ведущий (state.isMaster).
+   ============================================================ */
+function tFmt(s){ const m=Math.floor(s/60), ss=s%60; return String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0"); }
+let timerAlarmed=false;
+function timerApplyState(){
+  const t=state.timer; if(!t) return;
+  let remain = (t.running && t.endAt) ? Math.round((t.endAt-Date.now())/1000) : t.remaining;
+  remain = Math.max(0, remain);
+  $("#timerDisp").textContent=tFmt(remain);
+  $("#timer").classList.toggle("done", remain<=0);
+  $("#timerStart").textContent = t.running ? "Пауза" : "Старт";
+  if(document.activeElement!==$("#timerMin")) $("#timerMin").value = Math.round(t.duration/60);
+  if(remain<=0 && t.running){
+    if(!timerAlarmed){
+      timerAlarmed=true;
+      try{new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=").play();}catch(e){}
+      if(state.isMaster) store.setTimer({timer_running:false, timer_remaining_sec:0, timer_end_at:null});
+    }
+  } else { timerAlarmed=false; }
+}
+function applyMasterUITimer(){
+  const isM=!!state.isMaster;
+  $("#timerMin").disabled=!isM;
+  $("#timerStart").style.display=isM?"":"none";
+  $("#timerReset").style.display=isM?"":"none";
+  $("#timer").title=isM?"":"Таймер управляется ведущим";
+}
+function masterTimerToggle(){
+  if(!state.isMaster || !state.timer) return;
+  if(state.timer.running){
+    const remain=Math.max(0,Math.round((state.timer.endAt-Date.now())/1000));
+    store.setTimer({timer_running:false, timer_remaining_sec:remain, timer_end_at:null});
+  } else {
+    const remain = state.timer.remaining>0 ? state.timer.remaining : state.timer.duration;
+    if(remain<=0) return;
+    store.setTimer({timer_running:true, timer_end_at:new Date(Date.now()+remain*1000).toISOString()});
+  }
+}
+function masterTimerReset(){
+  if(!state.isMaster || !state.timer) return;
+  store.setTimer({timer_running:false, timer_remaining_sec:state.timer.duration, timer_end_at:null});
+}
+function masterTimerSetDuration(){
+  if(!state.isMaster || !state.timer || state.timer.running) return;
+  const m=parseInt($("#timerMin").value||"0",10)||0;
+  const sec=Math.max(0,Math.min(180,m))*60;
+  store.setTimer({timer_duration_sec:sec, timer_remaining_sec:sec, timer_running:false, timer_end_at:null});
+}
+$("#timerStart").onclick=masterTimerToggle;
+$("#timerReset").onclick=masterTimerReset;
+$("#timerMin").onchange=masterTimerSetDuration;
+applyMasterUITimer();
+timerApplyState();
+setInterval(timerApplyState,1000);
+
+/* ============================================================
+   Экспорт в Markdown
+   ============================================================ */
+$("#exportBtn").onclick=()=>{
+  let md=`# Карточки профессиональных ситуаций\n\n_Экспорт: ${new Date().toLocaleString('ru-RU')}_\n`;
+  SPACES.forEach(sp=>{
+    const items=Object.values(state.cards).filter(it=>it.space===sp.id);
+    if(!items.length) return;
+    md+=`\n## ${sp.name}\n`;
+    const cards=items.filter(i=>i.type==="card");
+    const notes=items.filter(i=>i.type==="note" && !i.s3);   // копии этапа 3 — отдельным разделом ниже
+    cards.forEach((c,i)=>{
+      md+=`\n### Карточка ${i+1}${c.author?` — ${c.author}`:""}\n`;
+      md+=`- **Ситуация:** ${c.situation||"—"}\n`;
+      md+=`- **Для кого создаётся ценность:** ${c.value_for||"—"}\n`;
+      md+=`- **Что должно измениться:** ${c.change||"—"}\n`;
+      const ts=normTasks(c.tasks);
+      if(ts.length){ md+=`- **Какие задачи выполняются:**\n`; ts.forEach((t,j)=>md+=`  ${j+1}. ${t}\n`); }
+      else md+=`- **Какие задачи выполняются:** —\n`;
+    });
+    if(notes.length){
+      md+=`\n**Стикеры:**\n`;
+      notes.forEach(n=>{ md+=`- ${n.text||"(пусто)"}\n`; });
+    }
+  });
+
+  // Матрица уровней внедрения (этап 3)
+  const s3all=Object.values(state.cards).filter(it=>it.s3);
+  if(s3all.length){
+    md+=`\n\n## Матрица уровней внедрения (этап 3)\n`;
+    for(let t=0;t<6;t++){
+      const items=s3all.filter(it=>it.space==="team"+(t+1));
+      if(!items.length) continue;
+      md+=`\n### ${SPACES[t].name}\n`;
+      ABCDE.forEach(col=>{
+        const inCol=items.filter(it=>it.matrix===col.k).map(it=>it.text||"(пусто)");
+        md+=`- **${col.k} · ${col.title}:** ${inCol.length?inCol.join("; "):"—"}\n`;
+      });
+      const un=items.filter(it=>!it.matrix).map(it=>it.text||"(пусто)");
+      if(un.length) md+=`- **Не распределено:** ${un.join("; ")}\n`;
+    }
+  }
+
+  // Этап 4 — пробы и полевые заметки
+  const fieldMd=(f,v)=>{
+    if(f.list){ const arr=Array.isArray(v)?v:(v?[v]:[]); if(!arr.length) return `- **${f.label}:** —\n`;
+      return `- **${f.label}:**\n`+arr.map((x,j)=>`  ${j+1}. ${x}\n`).join(""); }
+    return `- **${f.label}:** ${v||"—"}\n`;
+  };
+  const trials=Object.values(state.cards).filter(it=>it.type==="trial");
+  const fnotes=Object.values(state.cards).filter(it=>it.type==="fieldnotes");
+  if(trials.length||fnotes.length){
+    md+=`\n\n## Этап 4 — пробы и полевые заметки\n`;
+    GROUPS.forEach(g=>{
+      const gt=trials.filter(t=>t.space===g.id), gf=fnotes.filter(t=>t.space===g.id);
+      if(!gt.length&&!gf.length) return;
+      md+=`\n### ${g.name}\n`;
+      gt.forEach((t,i)=>{ md+=`\n**Карточка пробы ${i+1}**\n`; TEMPLATES.trial.fields.forEach(f=>{ md+=fieldMd(f,(t.data||{})[f.key]); }); });
+      gf.forEach((t,i)=>{ md+=`\n**Полевые заметки ${i+1}**\n`; TEMPLATES.fieldnotes.fields.forEach(f=>{ md+=fieldMd(f,(t.data||{})[f.key]); }); });
+    });
+    md+=`\n### Полевые заметки — сводно по всем группам\n`;
+    TEMPLATES.fieldnotes.fields.forEach(f=>{
+      let entries=[];
+      fnotes.forEach(n=>{ const v=(n.data||{})[f.key]; const arr=Array.isArray(v)?v:(v?[v]:[]); arr.forEach(x=>{ if(x&&(""+x).trim()) entries.push(x); }); });
+      md+=`- **${f.label}:** ${entries.length?entries.join("; "):"—"}\n`;
+    });
+  }
+
+  // Этап 5 — условия внедрения
+  const conditions=Object.values(state.cards).filter(it=>it.type==="condition");
+  if(conditions.length){
+    md+=`\n\n## Этап 5 — условия внедрения\n`;
+    TEAM_SPACES.forEach(sp=>{
+      const gc=conditions.filter(c=>c.space===sp.id);
+      if(!gc.length) return;
+      md+=`\n### ${sp.name}\n`;
+      gc.forEach((c,i)=>{ md+=`\n**Цепочка ${i+1}**\n`; TEMPLATES.condition.fields.forEach(f=>{ md+=fieldMd(f,(c.data||{})[f.key]); }); });
+    });
+    md+=`\n### Условия внедрения — сводно по всем командам\n`;
+    TEMPLATES.condition.fields.forEach(f=>{
+      let entries=[];
+      conditions.forEach(n=>{ const v=(n.data||{})[f.key]; const arr=Array.isArray(v)?v:(v?[v]:[]); arr.forEach(x=>{ if(x&&(""+x).trim()) entries.push(x); }); });
+      md+=`- **${f.label}:** ${entries.length?entries.join("; "):"—"}\n`;
+    });
+  }
+
+  // Этап 6 — итоговая матрица
+  const mx6cards=Object.values(state.cards).filter(it=>it.type==="matrix6");
+  if(mx6cards.length){
+    md+=`\n\n## Этап 6 — итоговая матрица базовой команды\n`;
+    const mx6Row=(sp,row)=>{
+      md+=`- **${row.label}:**\n`;
+      ABCDE.forEach(col=>{
+        const manual=mx6ItemsOf((mx6cards.find(c=>c.space===sp)||{}).data||{},row.key,col.k);
+        const synced=row.synced ? mx6TasksFromStage3(col.k, sp) : [];
+        const text=[...synced,...manual].join("; ");
+        md+=`  - *${col.k} · ${MX6_SHORT[col.k]}:* ${text&&(""+text).trim()?text:"—"}\n`;
+      });
+    };
+    TEAM_SPACES.forEach(sp=>{
+      if(!mx6cards.some(c=>c.space===sp.id)) return;
+      md+=`\n### ${sp.name}\n`;
+      MX6_ROWS.forEach(row=>mx6Row(sp.id,row));
+    });
+    md+=`\n### Задачи из проб (этап 4) — общий список\n`;
+    mx6TaskStickers().forEach(t=>{ md+=`- ${t}\n`; });
+  }
+
+  const blob=new Blob([md],{type:"text/markdown"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=`karateki_${new Date().toISOString().slice(0,10)}.md`; a.click();
+};
+
+/* ============================================================
+   ХРАНИЛИЩЕ: Supabase или локальное
+   ============================================================ */
+function LocalStore(){
+  const KEY="board_cards_v1", SKEY="board_stage_v1", TKEY="board_timer_v1";
+  const bc = ("BroadcastChannel" in window) ? new BroadcastChannel("board_sync") : null;
+  function loadAll(){ try{return JSON.parse(localStorage.getItem(KEY)||"{}");}catch(e){return {};} }
+  function saveAll(o){ localStorage.setItem(KEY,JSON.stringify(o)); }
+  function loadTimer(){ try{return JSON.parse(localStorage.getItem(TKEY)||"null");}catch(e){return null;} }
+  return {
+    async init(){
+      state.cards=loadAll();
+      state.unlocked=UNLOCK_ALL_LOCAL ? STAGES.length-1 : (parseInt(localStorage.getItem(SKEY)||"0",10)||0);
+      const t=loadTimer(); if(t) state.timer=t;
+      if(bc) bc.onmessage=(e)=>{
+        const m=e.data;
+        if(m.t==="upsert"){state.cards[m.item.id]=m.item;}
+        else if(m.t==="remove"){delete state.cards[m.id];}
+        else if(m.t==="stage"){state.unlocked=m.v;}
+        else if(m.t==="timer"){state.timer=m.v; timerApplyState();}
+        render();
+      };
+      setConn("local","Локальный режим (вкладки этого браузера)");
+    },
+    upsert(it){ const a=loadAll(); a[it.id]=it; saveAll(a); bc&&bc.postMessage({t:"upsert",item:it}); },
+    remove(id){ const a=loadAll(); delete a[id]; saveAll(a); bc&&bc.postMessage({t:"remove",id}); },
+    fetchAllCards(){ return Object.values(loadAll()); },
+    clearStage3(){
+      const a=loadAll(); Object.keys(a).forEach(id=>{ if(a[id].s3) delete a[id]; });
+      saveAll(a); bc&&bc.postMessage({t:"reload"});
+    },
+    setStage(v){ localStorage.setItem(SKEY,String(v)); bc&&bc.postMessage({t:"stage",v}); },
+    setTimer(patch){
+      const t={
+        duration: patch.timer_duration_sec ?? state.timer.duration,
+        remaining: patch.timer_remaining_sec ?? state.timer.remaining,
+        running: patch.timer_running ?? state.timer.running,
+        endAt: patch.timer_end_at!==undefined ? (patch.timer_end_at?new Date(patch.timer_end_at).getTime():null) : state.timer.endAt
+      };
+      state.timer=t; localStorage.setItem(TKEY,JSON.stringify(t)); bc&&bc.postMessage({t:"timer",v:t}); timerApplyState();
+    }
+  };
+}
+
+function SupaStore(){
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let timerQueue = Promise.resolve();
+  return {
+    async init(){
+      // загрузка карточек
+      const {data:cards,error}=await sb.from("cards").select("*");
+      if(error){ console.error(error); alert("Ошибка загрузки из Supabase: "+error.message+"\nПроверьте таблицы и ключи."); }
+      (cards||[]).forEach(c=>state.cards[c.id]=c);
+      // состояние доски
+      const {data:board}=await sb.from("board").select("*").eq("id",1).maybeSingle();
+      state.unlocked = board? (board.unlocked_stage||0) : 0;
+      applyTimerRow(board);
+      // realtime
+      sb.channel("cards-rt")
+        .on("postgres_changes",{event:"*",schema:"public",table:"cards"},payload=>{
+          if(payload.eventType==="DELETE"){ delete state.cards[payload.old.id]; }
+          else { state.cards[payload.new.id]=payload.new; }
+          render();
+        })
+        .on("postgres_changes",{event:"*",schema:"public",table:"board"},payload=>{
+          if(payload.new){ state.unlocked=payload.new.unlocked_stage||0; applyTimerRow(payload.new); render(); }
+        })
+        .subscribe(status=>{ if(status==="SUBSCRIBED") setConn("live","Онлайн · синхронизация включена"); });
+    },
+    async upsert(it){ const {error}=await sb.from("cards").upsert(it); if(error)console.error(error); },
+    async remove(id){ const {error}=await sb.from("cards").delete().eq("id",id); if(error)console.error(error); },
+    async fetchAllCards(){ const {data,error}=await sb.from("cards").select("*"); if(error){console.error(error); throw error;} return data||[]; },
+    async clearStage3(){ const {error}=await sb.from("cards").delete().eq("s3",true); if(error){console.error(error); throw error;} },
+    async setStage(v){ const {error}=await sb.from("board").upsert({id:1,unlocked_stage:v}); if(error)console.error(error); },
+    setTimer(patch){
+      timerQueue = timerQueue.then(async ()=>{
+        const {error}=await sb.from("board").upsert({id:1,...patch});
+        if(error)console.error(error);
+      });
+      return timerQueue;
+    }
+  };
+  function applyTimerRow(board){
+    if(!board) return;
+    state.timer={
+      duration: board.timer_duration_sec ?? 300,
+      remaining: board.timer_remaining_sec ?? 300,
+      running: !!board.timer_running,
+      endAt: board.timer_end_at ? new Date(board.timer_end_at).getTime() : null
+    };
+    timerApplyState();
+  }
+}
+
+function setConn(cls,txt){ const c=$("#conn"); c.className=cls; $("#connText").textContent=txt; }
+
+/* ============================================================
+   Старт
+   ============================================================ */
+(async function(){
+  const useSupa = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase;
+  store = useSupa ? SupaStore() : LocalStore();
+  try{ await store.init(); }
+  catch(e){ console.error(e); setConn("local","Локальный режим (ошибка подключения)"); if(!(store instanceof Object)) {} }
+  initMaster();
+  showBanner();
+  render();
+})();
+</script>
+</body>
+</html>

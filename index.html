@@ -1802,8 +1802,10 @@ function setConn(cls,txt){ const c=$("#conn"); c.className=cls; $("#connText").t
 (async function(){
   const useSupa = SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase;
   store = useSupa ? SupaStore() : LocalStore();
-  try{ await store.init(); }
-  catch(e){ console.error(e); setConn("local","Локальный режим (ошибка подключения)"); if(!(store instanceof Object)) {} }
+  try{
+    await Promise.race([ store.init(), new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),8000)) ]);
+  }
+  catch(e){ console.error(e); setConn("local","Нет связи с сервером (локальный режим)"); }
   initMaster();
   showBanner();
   render();

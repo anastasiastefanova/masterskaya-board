@@ -114,8 +114,6 @@
   .note{position:absolute;width:190px;min-height:120px;background:var(--note);border:1px solid var(--chg-br);border-radius:10px;
     box-shadow:var(--shadow);padding:12px;cursor:grab;font-size:13px;line-height:1.35;white-space:pre-wrap;word-break:break-word}
   .note .del{position:absolute;top:4px;right:6px;border:none;background:none;color:#b7a94e;cursor:pointer;font-size:14px}
-  .note .mbadge{position:absolute;top:-8px;left:-8px;width:24px;height:24px;border-radius:50%;background:var(--green-dark);
-    color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;box-shadow:var(--shadow)}
   .note[data-color="green"]{background:#dff0e4;border-color:var(--sit-br)}
   .note[data-color="pink"]{background:#fbe0e6;border-color:#eeb6c2}
   .note[data-color="blue"]{background:#dde9fb;border-color:#b6c9ee}
@@ -126,25 +124,27 @@
     padding:4px 14px;border-radius:20px;box-shadow:var(--shadow)}
   .zone .zsym{position:absolute;inset:0;display:grid;place-items:center;font-size:min(46vh,320px);line-height:1;opacity:.08;filter:grayscale(.2)}
 
-  /* матрица ABCDE (этап 3) */
-  .mxtitle{position:absolute;pointer-events:none}
-  .mxtitle .k{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--green);text-transform:uppercase}
-  .mxtitle h3{margin:3px 0 0;font-size:26px;color:var(--green-dark)}
-  .mxtitle .line{height:4px;background:var(--lime);border-radius:2px;margin-top:8px;width:560px}
-  .mxcol{position:absolute;border-radius:16px;padding:16px;pointer-events:none;border:1px solid var(--line);
-    box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .mxcol[data-c="A"]{background:var(--sit);border-color:var(--sit-br)}
-  .mxcol[data-c="B"]{background:var(--chg);border-color:var(--chg-br)}
-  .mxcol[data-c="C"]{background:var(--val);border-color:var(--val-br)}
-  .mxcol[data-c="D"]{background:#dde9fb;border-color:#b6c9ee}
-  .mxcol[data-c="E"]{background:#fbe0e6;border-color:#eeb6c2}
-  .mxcol .badge{width:34px;height:34px;border-radius:50%;background:var(--green-dark);color:#fff;
-    display:grid;place-items:center;font-weight:800;font-size:15px}
-  .mxcol[data-c="E"] .badge{background:#e07856}
-  .mxcol h4{margin:12px 0 8px;font-size:15px;color:#20351f;line-height:1.25}
-  .mxcol .d{font-size:11.5px;color:#5c6b60;line-height:1.4;min-height:66px}
-  .mxcol .zt{margin-top:14px;font-size:10px;font-weight:800;letter-spacing:.6px;color:var(--green);text-transform:uppercase}
-  .mxcol .drop{margin-top:8px;border:2px dashed rgba(0,0,0,.12);border-radius:10px;flex:1;min-height:180px}
+  /* стикеры: цвета, связи (вкладка 2), картинки (вкладка 5) */
+  .note[data-color="orange"]{background:#fde3c4;border-color:#f0bf85}
+  .note[data-color="white"]{background:#fff;border-color:#d5ddd7}
+  .note .tbadge{position:absolute;top:-10px;left:-8px;min-width:26px;height:26px;border-radius:13px;background:#fff;border:1px solid var(--line);
+    display:grid;place-items:center;font-size:15px;box-shadow:var(--shadow)}
+  .note .lnk{position:absolute;top:3px;right:24px;border:1px solid #d9cb7a;background:rgba(255,255,255,.65);color:#7a6a14;cursor:pointer;
+    font-size:11px;line-height:1.4;border-radius:6px;padding:0 5px}
+  .note .lnk:hover,.note .lnk.on{background:var(--green);border-color:var(--green);color:#fff}
+  .note .lnk.unl{border-color:#9dc7ab;color:var(--green-dark)}
+  .note.linkactive{outline:3px solid var(--green);outline-offset:2px}
+  body.linkmode .note[data-color="green"]{cursor:pointer;outline:2px dashed var(--green);outline-offset:2px}
+  svg.links{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+  #linkBar{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--green);border-radius:12px;
+    box-shadow:var(--shadow);padding:8px 12px;z-index:37;font-size:12.5px;display:flex;align-items:center;gap:10px;max-width:92vw}
+  .btn.sel{border-color:var(--green);background:#e6f2ea;color:var(--green-dark);font-weight:700}
+  #noteColors .sw{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.25);margin-right:6px;vertical-align:-1px}
+  .imgitem{position:absolute;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:6px;cursor:grab}
+  .imgitem img{display:block;width:100%;height:auto;border-radius:6px;pointer-events:none}
+  .imgitem .del{position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#8a968e;cursor:pointer;font-size:14px;line-height:1}
+  .imgitem .del:hover{color:#d1495b;border-color:#d1495b}
+  .imgitem .rz{position:absolute;right:2px;bottom:2px;width:16px;height:16px;cursor:nwse-resize;background:linear-gradient(135deg,transparent 50%,#8fa497 50%);border-radius:0 0 8px 0}
 
   /* карточки этапа 4 — инлайн-форма прямо в пространстве */
   .tplcard{width:620px;padding:0 0 16px;cursor:grab}
@@ -270,6 +270,8 @@
   <select id="spaceSel"></select>
   <button class="btn primary" id="addCardBtn">+ Карточка</button>
   <button class="btn" id="addNoteBtn">+ Стикер</button>
+  <button class="btn" id="addImageBtn" style="display:none">+ Картинка</button>
+  <input type="file" id="imgFile" accept="image/*" multiple style="display:none">
   <button class="btn primary" id="addTrialBtn" style="display:none">+ Карточка пробы</button>
   <button class="btn" id="addFnBtn" style="display:none">+ Полевые заметки</button>
   <button class="btn primary" id="addConditionBtn" style="display:none">+ Карточка условия</button>
@@ -293,6 +295,8 @@
 
 <div id="canvas"><div id="watermark"></div><div id="world"></div></div>
 
+<div id="linkBar" class="hidden"><span>🔗 <b>Режим связи.</b> Нажимайте на зелёные стикеры: они прикрепятся к выбранному жёлтому, повторный клик — открепит.</span><button class="btn small primary" id="linkDone">Готово</button></div>
+
 <div id="tools">
   <button class="btn small" id="zoomOut">−</button>
   <span id="zoomlabel">100%</span>
@@ -307,7 +311,7 @@
   <p>Открывайте этапы по ходу. Всем участникам этап откроется мгновенно.</p>
   <div id="mstages"></div>
   <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)">
-    <button class="btn small" id="syncStage3Btn" style="width:100%">Скопировать стикеры этапа 2 → Матрица</button>
+    <button class="btn small" id="syncStage2Btn" style="width:100%">Добрать стикеры этапа 1 → этап 2</button>
   </div>
 </div>
 
@@ -327,18 +331,18 @@
         <textarea id="fSit" rows="3"></textarea>
       </div>
       <div class="field f-val">
-        <label>Для кого создаётся ценность</label>
+        <label>Кто являлся получателем ценности</label>
         <div class="hint">Студент, коллега, подразделение, организация или другой получатель</div>
         <textarea id="fVal" rows="2"></textarea>
       </div>
       <div class="field f-chg">
-        <label>Что должно измениться</label>
-        <div class="hint">Какое наблюдаемое изменение покажет, что результат достигнут?</div>
+        <label>Созданные ценности</label>
+        <div class="hint">Что явилось полученной ценностью/ценностями? Как она/они проявились в наблюдаемом поведении получателя ценности?</div>
         <textarea id="fChg" rows="2"></textarea>
       </div>
       <div class="field f-task">
-        <label>Какие задачи выполняются</label>
-        <div class="hint">По одной задаче в строке. Каждую потом можно вынести на отдельный стикер. Про ИИ пока не думаем.</div>
+        <label>Какие задачи необходимо было решить для создания ценности</label>
+        <div class="hint">1 задача = 1 строка. Перечислите конкретные и значимые действия/задачи, которые необходимо было совершить преподавателю, для того, чтобы ценность была создана и получена</div>
         <div id="taskRows"></div>
         <button type="button" class="btn small" id="addTaskRow">+ добавить задачу</button>
       </div>
@@ -369,12 +373,7 @@
         <div class="hint">Действие, название группы/типа, вопрос, заметка</div>
         <textarea id="nText" rows="3"></textarea>
       </div>
-      <div style="display:flex;gap:8px" id="noteColors">
-        <button class="btn small" data-c="yellow">Жёлтый</button>
-        <button class="btn small" data-c="green">Зелёный</button>
-        <button class="btn small" data-c="pink">Розовый</button>
-        <button class="btn small" data-c="blue">Синий</button>
-      </div>
+      <div style="display:flex;gap:8px" id="noteColors"></div>
     </div>
     <div class="mfoot">
       <button class="btn" id="noteCancel">Отмена</button>
@@ -406,8 +405,8 @@ const UNLOCK_ALL_LOCAL = false;
 const STAGES = [
   {n:1, title:"Карточки ситуаций", text:"<b>Этап 1.</b> На основе рассказов друг друга заполните карточки профессиональных ситуаций. Одна карточка – одна ситуация."},
   {n:2, title:"Типы задач (общее)", text:"<b>Этап 2.</b> Сгруппируйте задачи всех команд в общие кластеры."},
-  {n:3, title:"Матрица ABCDE", text:"<b>Этап 3.</b> Какие профессиональные задачи мы можем выполнять с помощью ИИ? Отнесите кластеры/задачи по уровням: сам · команда · подразделение · система, и по тому, насколько применим ИИ (можно → нельзя). Стикерами разложите гипотезы команды."},
-  {n:4, title:"Пробы и заметки", text:"<b>Этап 4.</b> Попробуйте выполнить кейсы. При выполнении заполните карточку пробы, а также полевые заметки. Карточка пробы заполняется на каждый кейс отдельно, полевые заметки ведутся в одном журнале."},
+  {n:3, title:"Пробы и заметки. 1 день", text:"<b>Этап 3. Пробы и заметки, 1 день.</b> Попробуйте выполнить кейсы. При выполнении заполните карточку пробы, а также полевые заметки. Карточка пробы заполняется на каждый кейс отдельно, полевые заметки ведутся в одном журнале."},
+  {n:4, title:"Пробы и заметки. 2 день", text:"<b>Этап 4. Пробы и заметки, 2 день.</b> Попробуйте выполнить кейсы. При выполнении заполните карточку пробы, а также полевые заметки. Карточка пробы заполняется на каждый кейс отдельно, полевые заметки ведутся в одном журнале."},
   {n:5, title:"Условия внедрения", text:"<b>Этап 5.</b> Какие условия применения/внедрения ИИ нам нужны, чтобы осваивать его осмысленно, безопасно и с практической пользой? Разложите мысль по четырём уровням: самостоятельно · на уровне своей команды · на уровне взаимодействия со смежными подразделениями · на уровне всей Вышки системно."},
   {n:6, title:"Итоговая матрица", text:"<b>Этап 6.</b> Итоговая матрица базовой команды. Заполняйте на основе результатов проб и наблюдений всех дней."}
 ];
@@ -478,6 +477,7 @@ const state = {
   cards: {},            // id -> item
   view: {x:40, y:20, k:1},
   isMaster: false,
+  link: null,           // id жёлтого стикера, к которому сейчас «привязываем» зелёные (вкладка 2)
   timer: {duration:300, remaining:300, running:false, endAt:null}
 };
 let store = null;       // адаптер данных (supabase или локальный)
@@ -498,17 +498,23 @@ function applyView(){
   $("#zoomlabel").textContent = Math.round(state.view.k*100)+"%";
 }
 
-/* фильтр элементов по активному этапу */
-function tasksOnly(){ return state.stage===1; }
+/* фильтр элементов по активному этапу.
+   Стикеры разных вкладок различаются полем stage (1-based, как при создании):
+   вкладка 1 → 1 (или пусто у старых), вкладка 2 → 2, вкладка 5 → 5. */
 function itemMatchesStage(it){
-  if(state.stage===3) return it.type==="trial"||it.type==="fieldnotes";  // этап 4
-  if(state.stage===4) return it.type==="condition";                     // этап 5
-  if(state.stage===5) return it.type==="matrix6";                       // этап 6
-  if(it.type==="trial"||it.type==="fieldnotes"||it.type==="condition"||it.type==="matrix6") return false;
-  if(state.stage===2) return it.s3===true;      // этап 3 — только копии для матрицы
-  if(it.s3) return false;                        // копии этапа 3 не видны на других этапах
-  if(state.stage===1) return it.type==="note";   // этап 2 — только задачи
-  return true;                                    // этап 1 — всё
+  if(it.s3) return false;                                   // старые копии удалённой вкладки «Матрица ABCDE»
+  const isTpl = it.type==="trial"||it.type==="fieldnotes";
+  if(state.stage===2) return isTpl && teamIndex(it.space)>=0;            // 1 день — по командам
+  if(state.stage===3) return isTpl && /^group\d+$/.test(it.space);       // 2 день — по группам
+  if(state.stage===4){                                                    // условия внедрения
+    if(it.type==="condition") return state.space!=="common";             // в «Общем» условия показывает сводная карточка
+    return (it.type==="note"||it.type==="image") && it.stage===5;
+  }
+  if(state.stage===5) return it.type==="matrix6";
+  if(isTpl||it.type==="condition"||it.type==="matrix6"||it.type==="image") return false;
+  if(state.stage===1) return it.type==="note" && it.stage===2;            // вкладка 2 — только собственные копии
+  if(it.type==="note") return (it.stage||1)===1;                          // вкладка 1
+  return true;
 }
 function stageFilter(arr){ return arr.filter(itemMatchesStage); }
 
@@ -542,10 +548,9 @@ function boxesFromGuess(){
     let minX,minY,maxX,maxY;
     if(items.length){
       minX=1e9;minY=1e9;maxX=-1e9;maxY=-1e9;
-      items.forEach(it=>{ const w=it.type==="note"?200:290, h=it.type==="note"?150:360;
+      items.forEach(it=>{ const w=it.type==="note"?200:it.type==="image"?((it.data||{}).w||280)+14:290, h=it.type==="note"?150:it.type==="image"?260:360;
         minX=Math.min(minX,it.x); minY=Math.min(minY,it.y); maxX=Math.max(maxX,it.x+w); maxY=Math.max(maxY,it.y+h); });
     } else { minX=0; minY=0; maxX=CLP.EMPTY_W; maxY=CLP.EMPTY_H; }
-    if(state.stage===2){ minX=Math.min(minX,0); minY=Math.min(minY,0); maxX=Math.max(maxX,MX.W); maxY=Math.max(maxY,MX.FULLH); }
     boxes.push({minX,minY,w:maxX-minX,h:maxY-minY});
   }
   return boxes;
@@ -572,13 +577,16 @@ function boxesFromDom(prevT){
   }
   return boxes;
 }
+/* на вкладке 5 в «Общем» слева стоит сводная карточка условий — зоны команд сдвигаем правее */
+function commonOX(){ return state.stage===4 ? 720 : 0; }
 function layoutFromBoxes(boxes){
+  const ox=commonOX();
   const colW=[0,0,0], rowH=[0,0];
   boxes.forEach((b,i)=>{ const c=i%3, r=i<3?0:1;
     colW[c]=Math.max(colW[c], b.w+CLP.PAD*2);
     rowH[r]=Math.max(rowH[r], b.h+CLP.PAD+CLP.TOPPAD);
   });
-  const colX=[0, colW[0]+CLP.GAP, colW[0]+colW[1]+CLP.GAP*2];
+  const colX=[ox, ox+colW[0]+CLP.GAP, ox+colW[0]+colW[1]+CLP.GAP*2];
   const rowY=[40, 40+rowH[0]+CLP.GAP];
   const map={};
   boxes.forEach((b,i)=>{ const c=i%3, r=i<3?0:1;
@@ -615,7 +623,7 @@ function drawZones(){
   }
 }
 
-/* ---------- Матрица ABCDE (этап 3) ---------- */
+/* ---------- Колонки итоговой матрицы (этап 6) ---------- */
 const ABCDE=[
   {k:"A",title:"Самостоятельно",desc:"Безопасно; не нужны коллеги, разрешения и изменения процессов."},
   {k:"B",title:"Внутри подразделения",desc:"Нужно участие коллег; специальные разрешения и изменения норм не требуются."},
@@ -623,68 +631,10 @@ const ABCDE=[
   {k:"D",title:"На уровне организации",desc:"Нужны изменения процессов, правил взаимодействия или технологий."},
   {k:"E",title:"Невозможно / нецелесообразно",desc:"Неэффективно, небезопасно или не имеет практического смысла."}
 ];
-const MX={COLW:280, GAP:26, H:780, TITLEH:96};
-MX.W = 5*MX.COLW + 4*MX.GAP;         // ширина матрицы
-MX.STAGEX = MX.W + 90;               // область с задачами — правее матрицы
-MX.STAGEY = MX.TITLEH;
-MX.FULLH = MX.TITLEH + MX.H;
-
-function drawMatrix(bx,by,space){
-  const ti=document.createElement("div"); ti.className="mxtitle";
-  ti.style.left=bx+"px"; ti.style.top=by+"px";
-  ti.innerHTML=`<div class="k">Черновая гипотеза</div><h3>Матрица уровней внедрения</h3><div class="line"></div>`;
-  world.appendChild(ti);
-  ABCDE.forEach((col,i)=>{
-    const el=document.createElement("div"); el.className="mxcol"; el.dataset.c=col.k; el.dataset.space=space;
-    el.style.left=(bx+i*(MX.COLW+MX.GAP))+"px"; el.style.top=(by+MX.TITLEH)+"px";
-    el.style.width=MX.COLW+"px"; el.style.height=MX.H+"px";
-    el.innerHTML=`<div class="badge">${col.k}</div><h4>${col.title}</h4><div class="d">${col.desc}</div>
-      <div class="zt">Задачи команды</div><div class="drop"></div>`;
-    world.appendChild(el);
-  });
-}
-/* определить колонку матрицы (A–E) по позиции стикера в командных координатах.
-   Верхней границы по Y больше нет: раньше стикер, утащенный ниже фиксированной
-   высоты колонки (780px), терял привязку к колонке (matrix=null), хотя визуально
-   оставался на своём месте — теперь достаточно попадания по X, а колонка сама
-   растягивается под контент (см. refineMatrixHeights). */
-function assignMatrix(it){
-  const cx=it.x+95, cy=it.y+60;   // центр стикера
-  let col=null;
-  if(cy>=MX.TITLEH){
-    for(let i=0;i<5;i++){ const x=i*(MX.COLW+MX.GAP); if(cx>=x && cx<=x+MX.COLW){ col=ABCDE[i].k; break; } }
-  }
-  it.matrix = col;
-}
-function drawMatrixForView(){
-  if(state.space==="common"){ for(let i=0;i<6;i++){ const t=commonT[i]; if(t) drawMatrix(t.x,t.y,"team"+(i+1)); } }
-  else if(teamIndex(state.space)>=0){ drawMatrix(0,0,state.space); }
-}
-/* растянуть колонки матрицы под фактическое содержимое (после того как стикеры
-   отрисованы в DOM и у них известна настоящая высота) — та же идея, что и
-   refineCommonLayout() для зон этапа 1, только тут проще: только высота,
-   ширина и позиции колонок не меняются. */
-function refineMatrixHeights(){
-  document.querySelectorAll(".mxcol").forEach(colEl=>{
-    const colKey=colEl.dataset.c, space=colEl.dataset.space;
-    const colTop=parseFloat(colEl.style.top)||0;
-    let maxBottom=null;
-    world.querySelectorAll(".note").forEach(noteEl=>{
-      const it=state.cards[noteEl.dataset.id];
-      if(!it || !it.s3 || it.matrix!==colKey || it.space!==space) return;
-      const bottom=(parseFloat(noteEl.style.top)||0)+noteEl.offsetHeight;
-      if(maxBottom===null || bottom>maxBottom) maxBottom=bottom;
-    });
-    if(maxBottom===null) return;   // нет стикеров — оставляем высоту по умолчанию
-    const neededH=maxBottom-colTop+40;
-    if(neededH>MX.H) colEl.style.height=neededH+"px";
-  });
-}
-
 /* ---------- Итоговая матрица (этап 6) ---------- */
 const MX6_SHORT={A:"Самостоятельно",B:"Подразделение",C:"Смежные",D:"Организация",E:"Не имеет смысла"};
 const MX6_ROWS=[
-  {key:"tasks",      label:"Какие задачи можем выполнять", synced:true},
+  {key:"tasks",      label:"Какие задачи можем выполнять"},
   {key:"tools",      label:"Какие инструменты можем использовать", cls:"f-sit"},
   {key:"conditions", label:"Какие условия нужны: что, как, чья помощь"},
   {key:"ideas",      label:"Какие идеи предлагаем реализовать", cls:"f-chg"}
@@ -714,13 +664,6 @@ function mx6ConditionStickers(){
       return parts.join("\n");
     })
     .filter(v=>v && v.trim());
-}
-/* тексты стикеров этапа 3, отнесённых в колонку colKey; teamSpace — конкретная команда, либо null — по всем */
-function mx6TasksFromStage3(colKey, teamSpace){
-  return Object.values(state.cards)
-    .filter(it=>it.s3 && it.matrix===colKey && (teamSpace ? it.space===teamSpace : true))
-    .map(it=>it.text)
-    .filter(v=>v && (""+v).trim());
 }
 function mx6ReadonlyCell(text){
   return `<div class="mx6cell mx6ro">${text&&text.trim()?`<div class="txt">${esc(text)}</div>`:`<div class="txt empty">—</div>`}</div>`;
@@ -838,7 +781,7 @@ function mx6BuildCellItems(wrap,it,data,rowKey,colKey){
     render();
   });
 }
-/* карточка команды — редактируемая; строка "какие задачи" вживую подтягивается из этапа 3 этой же команды */
+/* карточка команды — редактируемая */
 function renderMatrix6Card(it){
   const data=it.data||(it.data={});
   const el=document.createElement("div"); el.className="card mx6card"; el.dataset.id=it.id;
@@ -849,15 +792,6 @@ function renderMatrix6Card(it){
   });
   el.querySelectorAll(".mx6edit").forEach(wrap=>{
     const rk=wrap.dataset.row, ck=wrap.dataset.col;
-    const row=MX6_ROWS.find(r=>r.key===rk);
-    if(row && row.synced){
-      const synced=mx6TasksFromStage3(ck, it.space);
-      if(synced.length){
-        const box=document.createElement("div"); box.className="mx6synced";
-        synced.forEach(t=>{ const d=document.createElement("div"); d.className="mx6syncitem"; d.textContent=t; box.appendChild(d); });
-        wrap.appendChild(box);
-      }
-    }
     mx6BuildCellItems(wrap,it,data,rk,ck);
   });
   makeDraggable(el,it);
@@ -872,7 +806,7 @@ function renderMatrix6Aggregate(){
   const el=document.createElement("div"); el.className="card mx6card"; el.style.left="40px"; el.style.top="20px";
   el.innerHTML=`<div class="tplhead"><div class="k">Сводно по всем командам</div><div class="ttl">${MX6_TITLE}</div><div class="line"></div></div>`;
   el.innerHTML+=mx6GridHtml((row,col)=>{
-    const vals=row.synced ? mx6TasksFromStage3(col.k, null).slice() : [];
+    const vals=[];
     Object.values(state.cards).filter(c=>c.type==="matrix6").forEach(c=>{
       mx6ItemsOf(c.data||{},row.key,col.k).forEach(v=>{ if(v&&(""+v).trim()) vals.push(v); });
     });
@@ -882,16 +816,6 @@ function renderMatrix6Aggregate(){
   renderStickerPalette(40+el.offsetWidth+40, 20, null);
 }
 
-/* временно посчитать раскладку под другой этап */
-function withStage(s,fn){ const cur=state.stage; state.stage=s; try{ return fn(); } finally{ state.stage=cur; } }
-/* позиция стикера так, как он лежит на этапе 2 */
-function stage2PosOf(note){
-  return withStage(1, ()=>{
-    if(note.s2x!=null) return {x:note.s2x, y:note.s2y};
-    const t=computeCommonLayout(); const off=t[teamIndex(note.space)]||{x:0,y:0};
-    return {x:off.x+note.x, y:off.y+note.y};
-  });
-}
 /* в каждой команде этапа 5 сразу лежит карточка-шаблон условий внедрения (один раз).
    Перед проверкой "уже создана?" подтягиваем свежие карточки из Supabase, а не
    доверяем локальному кэшу — иначе разные участники, зашедшие раньше, чем их
@@ -932,10 +856,10 @@ async function seedStage6(){
    экземпляре) и часть размножилась. Теперь: (1) сначала подтягиваем свежие
    карточки прямо из Supabase, а не из кэша; (2) позицию выставляем только при
    первом создании, а не на каждый заход. */
-async function seedStage4(){
+async function seedTrialCards(spaces){
   const fresh = await store.fetchAllCards();
   fresh.forEach(c=>{ state.cards[c.id]=c; });
-  GROUPS.forEach(g=>{
+  spaces.forEach(g=>{
     let t=Object.values(state.cards).find(it=>it.type==="trial"&&it.space===g.id);
     let f=Object.values(state.cards).find(it=>it.type==="fieldnotes"&&it.space===g.id);
     if(!t){ t={id:"trial-"+g.id,type:"trial",space:g.id,x:40,y:40,data:{}}; state.cards[t.id]=t; store.upsert(t); }
@@ -943,61 +867,52 @@ async function seedStage4(){
   });
   render();
 }
+const seedStage3Day1 = ()=>seedTrialCards(TEAM_SPACES);  // вкладка 3 — «Пробы и заметки. 1 день» (по командам)
+const seedStage4Day2 = ()=>seedTrialCards(GROUPS);       // вкладка 4 — «Пробы и заметки. 2 день» (по группам)
 
-/* создать в пространстве каждой команды копии всех задач этапа 2.
-   Раньше запускалось само при заходе на вкладку "Матрица ABCDE" у ЛЮБОГО
-   участника — и поскольку у каждого браузера свой, не всегда полностью
-   догруженный локальный список стикеров, разные команды получали разные,
-   неполные наборы копий (гонка между клиентами). Теперь вызывается только
-   вручную ведущим через syncStage3(), которая заранее подтягивает
-   актуальные данные из Supabase. forceAll=true игнорирует проверку
-   "уже скопировано" и пересобирает копии для всех команд заново.
+/* ============================================================
+   Вкладка 1 → вкладка 2: одноразовый снимок стикеров.
+   Когда ведущий открывает вкладку 2, все стикеры вкладки 1 копируются в общее
+   пространство вкладки 2 как НЕЗАВИСИМЫЕ стикеры. Дальше правки/удаления/
+   перемещения на вкладке 2 не затрагивают вкладку 1, а новое с вкладки 1 не
+   переносится. Исходник помечается data.s2done (чтобы не копировать дважды);
+   id копии детерминирован ("s2-"+id исходника), поэтому гонка двух клиентов
+   не создаёт дублей. Кнопка в панели ведущего «добирает» только стикеры,
+   которых ещё не копировали.
    ============================================================ */
-function seedStage3(forceAll){
-  const sources=Object.values(state.cards).filter(it=>it.type==="note" && !it.s3);
-  if(!sources.length) return;
-  const poss=sources.map(stage2PosOf);
-  const minX=Math.min(...poss.map(p=>p.x)), minY=Math.min(...poss.map(p=>p.y));
-  for(let t=0;t<6;t++){
-    if(!forceAll){
-      const has=Object.values(state.cards).some(it=>it.s3 && it.space==="team"+(t+1));
-      if(has) continue;
-    }
-    sources.forEach((src,i)=>{
-      const p=poss[i];
-      const it={id:uid(), type:"note", space:"team"+(t+1), s3:true, from_note:src.id,
-        text:src.text, color:src.color,
-        x: MX.STAGEX + (p.x-minX), y: MX.STAGEY + (p.y-minY)};
-      state.cards[it.id]=it; store.upsert(it);
+async function snapshotStage2(){
+  const fresh = await store.fetchAllCards();
+  fresh.forEach(c=>{ state.cards[c.id]=c; });
+  const sources=Object.values(state.cards).filter(it=>it.type==="note" && !it.s3 && (it.stage||1)===1 && !(it.data&&it.data.s2done));
+  if(!sources.length) return 0;
+  // раскладка копий: блок на каждую команду (3×2), внутри — сетка по 3 стикера; ниже уже лежащих на вкладке 2
+  const CW=215, CH=165, BW=3*CW+60, existing=Object.values(state.cards).filter(it=>it.type==="note"&&it.stage===2);
+  const y0=existing.length ? Math.max(...existing.map(n=>n.y||0))+200 : 0;
+  const groups={}; sources.forEach(it=>{ const t=teamIndex(it.space); (groups[t]=groups[t]||[]).push(it); });
+  const keys=Object.keys(groups).map(Number).sort((a,b)=>a-b);
+  const rowH=[0,0,0,0];
+  keys.forEach((t,bi)=>{ const r=Math.floor(bi/3); rowH[r]=Math.max(rowH[r], Math.ceil(groups[t].length/3)*CH+60); });
+  const rowY=[y0, y0+rowH[0], y0+rowH[0]+rowH[1], y0+rowH[0]+rowH[1]+rowH[2]];
+  keys.forEach((t,bi)=>{
+    const bx=(bi%3)*BW, by=rowY[Math.floor(bi/3)];
+    groups[t].forEach((src,i)=>{
+      const copy={id:"s2-"+src.id, type:"note", space:"common", stage:2, from_note:src.id,
+        x:bx+(i%3)*CW, y:by+Math.floor(i/3)*CH, text:src.text, color:src.color||"yellow", data:{team:t, parent:null}};
+      state.cards[copy.id]=copy; store.upsert(copy);
+      src.data={...(src.data||{}), s2done:true}; store.upsert(src);
     });
-  }
+  });
+  return sources.length;
 }
-/* явная, безопасная пересборка матрицы этапа 3 ведущим:
-   1) подтягивает актуальные карточки из Supabase (не из локального кэша),
-   2) удаляет старые копии этапа 3 (в БД и локально),
-   3) заново копирует ВСЕ текущие стикеры этапа 2 во все 6 команд. */
-async function syncStage3(){
+async function snapshotStage2Manual(){
   if(!state.isMaster) return;
-  if(!confirm("Пересобрать матрицу этапа 3 из текущих стикеров этапа 2 для всех 6 команд?\nСтарые копии на этапе 3 будут удалены.")) return;
-  const btn=$("#syncStage3Btn");
-  if(btn){ btn.disabled=true; btn.textContent="Синхронизация…"; }
+  const btn=$("#syncStage2Btn"); const label=btn.textContent;
+  btn.disabled=true; btn.textContent="Копирование…";
   try{
-    const fresh = await store.fetchAllCards();
-    fresh.forEach(c=>{ state.cards[c.id]=c; });
-    Object.keys(state.cards).forEach(id=>{
-      if(state.cards[id].s3 && !fresh.some(c=>c.id===id)) delete state.cards[id];
-    });
-    await store.clearStage3();
-    Object.keys(state.cards).forEach(id=>{ if(state.cards[id].s3) delete state.cards[id]; });
-    seedStage3(true);
-    render();
-    alert("Готово: стикеры этапа 2 скопированы в матрицу для всех 6 команд.");
-  } catch(e){
-    console.error(e);
-    alert("Ошибка синхронизации: "+(e && e.message ? e.message : e));
-  } finally {
-    if(btn){ btn.disabled=false; btn.textContent="Скопировать стикеры этапа 2 → Матрица"; }
-  }
+    const n=await snapshotStage2(); render();
+    alert(n ? `Скопировано стикеров на вкладку 2: ${n}.` : "Новых стикеров на вкладке 1 нет — всё уже скопировано.");
+  }catch(e){ console.error(e); alert("Ошибка копирования: "+(e&&e.message?e.message:e)); }
+  finally{ btn.disabled=false; btn.textContent=label; }
 }
 
 function esc(t){return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -1006,9 +921,8 @@ function esc(t){return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replac
 function isAgg(it){ return state.space==="common" && teamIndex(it.space)>=0; }
 function posOf(it){
   if(isAgg(it)){
-    if(tasksOnly() && it.s2x!=null) return {x:it.s2x, y:it.s2y};   // этап 2 — собственная раскладка
     const t=commonT[teamIndex(it.space)]||{x:0,y:0};
-    return {x:t.x+it.x, y:t.y+it.y};                               // этап 3+ — живое зеркало
+    return {x:t.x+it.x, y:t.y+it.y};                               // общее пространство — зеркало команд
   }
   return {x:it.x,y:it.y};
 }
@@ -1018,8 +932,12 @@ function render(){
   $("#watermark").textContent = state.space==="common" ? "" : symbolForSpace(state.space);
   // видимость кнопок панели по этапу
   $("#addCardBtn").style.display = state.stage>=1 ? "none" : "";
-  $("#addNoteBtn").style.display = state.stage===3 ? "none" : "";
-  const s4group = state.stage===3 && state.space!=="common";
+  $("#addNoteBtn").style.display = (state.stage===2||state.stage===3||state.stage===5) ? "none" : "";
+  $("#addImageBtn").style.display = state.stage===4 ? "" : "none";
+  if(state.link && (state.stage!==1 || !state.cards[state.link])) state.link=null;
+  $("#linkBar").classList.toggle("hidden", !state.link);
+  document.body.classList.toggle("linkmode", !!state.link);
+  const s4group = (state.stage===2||state.stage===3) && state.space!=="common";
   $("#addTrialBtn").style.display = s4group ? "" : "none";
   $("#addFnBtn").style.display   = "none";
   const s5group = state.stage===4 && state.space!=="common";
@@ -1037,19 +955,23 @@ function render(){
     st.appendChild(b);
   });
   // cards
-  world.querySelectorAll(".card,.note,.zone,.mxcol,.mxtitle,.mx6stickers").forEach(n=>n.remove());
-  if(state.stage===3 && state.space==="common"){
+  world.querySelectorAll(".card,.note,.imgitem,.zone,.mx6stickers,svg.links").forEach(n=>n.remove());
+  if((state.stage===2||state.stage===3) && state.space==="common"){
     renderStage4Aggregate();
   } else if(state.stage===4 && state.space==="common"){
     renderStage5Aggregate();
+    // стикеры и картинки команд — зонами справа от сводной карточки
+    commonT=computeCommonLayout(); drawZones();
+    visibleItems().forEach(renderItem);
+    refineCommonLayout();
   } else if(state.stage===5 && state.space==="common"){
     renderMatrix6Aggregate();
   } else {
-    if(state.space==="common"){ commonT=computeCommonLayout(); drawZones(); }
-    if(state.stage===2) drawMatrixForView();
+    if(state.space==="common" && state.stage===0){ commonT=computeCommonLayout(); drawZones(); }
+    if(state.stage===1) world.appendChild(makeLinksLayer());
     visibleItems().forEach(renderItem);
     if(state.space==="common" && state.stage===0) refineCommonLayout();
-    if(state.stage===2) refineMatrixHeights();
+    if(state.stage===1) drawLinks();
   }
   // space selector value
   $("#spaceSel").value = state.space;
@@ -1059,8 +981,10 @@ function render(){
 }
 
 /* набор пространств для текущего этапа */
-const STAGE_AGG_LABEL={3:"Общее · Полевые заметки", 4:"Общее · Условия", 5:"Общее · Итоговая матрица"};
+const STAGE_AGG_LABEL={2:"Общее · Полевые заметки (1 день)", 3:"Общее · Полевые заметки (2 день)", 4:"Общее · Условия", 5:"Общее · Итоговая матрица"};
 function currentSpaces(){
+  if(state.stage===1) return [{id:"common", name:"Общее пространство"}];   // «Типы задач» — только общая доска
+  if(state.stage===2) return TEAM_SPACES.concat([{id:"common", name:STAGE_AGG_LABEL[2]}]);
   if(state.stage===3) return GROUPS.concat([{id:"common", name:STAGE_AGG_LABEL[3]}]);
   if(state.stage===4||state.stage===5) return TEAM_SPACES.concat([{id:"common", name:STAGE_AGG_LABEL[state.stage]}]);
   return SPACES;
@@ -1081,6 +1005,7 @@ function symbolForSpace(id){
 
 function renderItem(it){
   if(it.type==="note") return renderNote(it);
+  if(it.type==="image") return renderImage(it);
   if(it.type==="trial"||it.type==="fieldnotes"||it.type==="condition") return renderTplCard(it);
   if(it.type==="matrix6") return renderMatrix6Card(it);
   const el=document.createElement("div");
@@ -1100,24 +1025,94 @@ function renderItem(it){
   el.innerHTML=`
     <div class="chd"><span class="tag">Ситуация</span>${it.author?`<span class="who">${esc(it.author)}</span>`:""}<button class="del" title="Удалить">×</button></div>
     <div class="fld f-sit"><div class="lbl">Ситуация</div>${f(it.situation)}</div>
-    <div class="fld f-val"><div class="lbl">Для кого ценность</div>${f(it.value_for)}</div>
-    <div class="fld f-chg"><div class="lbl">Что должно измениться</div>${f(it.change)}</div>
-    <div class="fld f-task"><div class="lbl">Какие задачи</div>${tasksHtml}</div>`;
+    <div class="fld f-val"><div class="lbl">Кто являлся получателем ценности</div>${f(it.value_for)}</div>
+    <div class="fld f-chg"><div class="lbl">Созданные ценности</div>${f(it.change)}</div>
+    <div class="fld f-task"><div class="lbl">Какие задачи необходимо было решить для создания ценности</div>${tasksHtml}</div>`;
   el.querySelectorAll(".pop").forEach(b=>b.onclick=(e)=>{e.stopPropagation();promoteTask(it,parseInt(b.dataset.i,10));});
   el.querySelector(".del").onclick=(e)=>{e.stopPropagation();delItem(it.id);};
   el.ondblclick=()=>openCard(it.id);
   makeDraggable(el,it);
   world.appendChild(el);
 }
+/* --- связи на вкладке 2: зелёный стикер принадлежит жёлтому (data.parent = id жёлтого) --- */
+function childrenOf(id){
+  return Object.values(state.cards).filter(c=>c.type==="note" && c.stage===2 && c.color==="green" && c.data && c.data.parent===id);
+}
+/* родитель считается только если жёлтый стикер ещё существует (удалили жёлтый — зелёные
+   становятся свободными, а при Ctrl+Z связь возвращается сама) */
+function parentOf(it){
+  const p=it.data && it.data.parent; const c=p && state.cards[p];
+  return c && c.type==="note" && c.stage===2 && c.color==="yellow" ? c : null;
+}
+function setParent(it,parentId){
+  it.data={...(it.data||{}), parent:parentId}; store.upsert(it);
+}
+function toggleLinkMode(id){ state.link = state.link===id ? null : id; render(); }
+function makeLinksLayer(){
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("class","links");
+  return svg;
+}
+function drawLinks(){
+  const svg=world.querySelector("svg.links"); if(!svg) return;
+  svg.innerHTML="";
+  const center=(el)=>({x:(parseFloat(el.style.left)||0)+el.offsetWidth/2, y:(parseFloat(el.style.top)||0)+el.offsetHeight/2});
+  world.querySelectorAll('.note[data-color="green"]').forEach(g=>{
+    const it=state.cards[g.dataset.id]; const par=it&&parentOf(it); if(!par) return;
+    const pe=world.querySelector(`.note[data-id="${par.id}"]`); if(!pe) return;
+    const a=center(pe), b=center(g);
+    const ln=document.createElementNS("http://www.w3.org/2000/svg","line");
+    ln.setAttribute("x1",a.x); ln.setAttribute("y1",a.y); ln.setAttribute("x2",b.x); ln.setAttribute("y2",b.y);
+    ln.setAttribute("stroke","#1f7a4d"); ln.setAttribute("stroke-width","2.5"); ln.setAttribute("stroke-linecap","round");
+    svg.appendChild(ln);
+    const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    dot.setAttribute("cx",b.x); dot.setAttribute("cy",b.y); dot.setAttribute("r","5"); dot.setAttribute("fill","#1f7a4d");
+    svg.appendChild(dot);
+  });
+}
+
 function renderNote(it){
   const el=document.createElement("div");
   el.className="note"; el.dataset.id=it.id; el.dataset.color=it.color||"yellow";
   if(isAgg(it)) el.dataset.team=teamIndex(it.space);
   const p=posOf(it); el.style.left=p.x+"px"; el.style.top=p.y+"px";
-  const mb = it.matrix ? `<span class="mbadge">${it.matrix}</span>` : "";
-  el.innerHTML=`<button class="del">×</button>${mb}${esc(it.text)||'<span style="color:#b7a94e">двойной клик — правка</span>'}`;
+  const s2=state.stage===1;
+  const team=s2 && it.data && it.data.team!=null ? it.data.team : -1;
+  const tb = team>=0 ? `<span class="tbadge" title="Команда ${team+1}">${teamSymbol(team)}</span>` : "";
+  let lk="";
+  if(s2 && it.color==="yellow"){
+    const n=childrenOf(it.id).length;
+    lk=`<button class="lnk${state.link===it.id?" on":""}" title="Связать с зелёными стикерами">🔗${n?" "+n:""}</button>`;
+    if(state.link===it.id) el.classList.add("linkactive");
+  } else if(s2 && it.color==="green" && parentOf(it)){
+    lk=`<button class="lnk unl" title="Открепить от жёлтого стикера">⛓×</button>`;
+  }
+  el.innerHTML=`<button class="del">×</button>${lk}${tb}${esc(it.text)||'<span style="color:#b7a94e">двойной клик — правка</span>'}`;
   el.querySelector(".del").onclick=(e)=>{e.stopPropagation();delItem(it.id);};
+  const lb=el.querySelector(".lnk");
+  if(lb) lb.onclick=(e)=>{ e.stopPropagation();
+    if(lb.classList.contains("unl")){ setParent(it,null); render(); } else toggleLinkMode(it.id); };
   el.ondblclick=()=>openNote(it.id);
+  makeDraggable(el,it);
+  world.appendChild(el);
+}
+/* картинка (вкладка 5): data.src — сжатый dataURL, data.w — ширина на доске */
+function renderImage(it){
+  const d=it.data||{};
+  const el=document.createElement("div"); el.className="imgitem"; el.dataset.id=it.id;
+  if(isAgg(it)) el.dataset.team=teamIndex(it.space);
+  const p=posOf(it); el.style.left=p.x+"px"; el.style.top=p.y+"px"; el.style.width=(d.w||280)+"px";
+  el.innerHTML=`<button class="del" title="Удалить">×</button><img alt="" draggable="false"><span class="rz" title="Изменить размер"></span>`;
+  el.querySelector("img").src=d.src||"";
+  el.querySelector(".del").onclick=(e)=>{e.stopPropagation();delItem(it.id);};
+  const rz=el.querySelector(".rz");
+  rz.addEventListener("pointerdown",(e)=>{
+    e.stopPropagation(); e.preventDefault(); rz.setPointerCapture(e.pointerId);
+    const sx=e.clientX, w0=el.offsetWidth; let w=w0;
+    const move=(ev)=>{ w=Math.max(80,w0+(ev.clientX-sx)/state.view.k); el.style.width=w+"px"; };
+    const up=()=>{ rz.removeEventListener("pointermove",move); rz.removeEventListener("pointerup",up);
+      it.data={...(it.data||{}), w:Math.round(w)}; store.upsert(it); };
+    rz.addEventListener("pointermove",move); rz.addEventListener("pointerup",up);
+  });
   makeDraggable(el,it);
   world.appendChild(el);
 }
@@ -1189,9 +1184,10 @@ function renderTplCard(it){
 /* общее пространство этапа 4 — сводная карточка полевых заметок */
 function renderStage4Aggregate(){
   const tpl=TEMPLATES.fieldnotes;
-  const notes=Object.values(state.cards).filter(it=>it.type==="fieldnotes");
+  const day1=state.stage===2;
+  const notes=Object.values(state.cards).filter(it=>it.type==="fieldnotes" && (day1 ? teamIndex(it.space)>=0 : /^group\d+$/.test(it.space)));
   const el=document.createElement("div"); el.className="card tplcard"; el.style.left="40px"; el.style.top="20px"; el.style.width="640px";
-  let html=`<div class="tplhead"><div class="k">Сводно по всем группам</div><div class="ttl">Полевые заметки</div><div class="line"></div></div>`;
+  let html=`<div class="tplhead"><div class="k">Сводно по всем ${day1?"командам":"группам"}</div><div class="ttl">Полевые заметки</div><div class="line"></div></div>`;
   tpl.fields.forEach(f=>{
     let entries=[];
     notes.forEach(n=>{ const v=(n.data||{})[f.key]; const arr=Array.isArray(v)?v:(v?[v]:[]); arr.forEach(x=>{ if(x&&(""+x).trim()) entries.push(x); }); });
@@ -1220,29 +1216,39 @@ function renderStage5Aggregate(){
    ============================================================ */
 function makeDraggable(el,it){
   el.addEventListener("pointerdown",(e)=>{
-    if(e.target.closest(".del,.pop,textarea,input,button,.ilist")) return;
+    if(e.target.closest(".del,.pop,.lnk,.rz,textarea,input,button,.ilist")) return;
     e.stopPropagation();
+    // режим связи (вкладка 2): клик по зелёному стикеру прикрепляет/открепляет его от выбранного жёлтого
+    if(state.link && state.stage===1 && it.type==="note" && it.color==="green"){
+      const same=parentOf(it) && parentOf(it).id===state.link;
+      setParent(it, same ? null : state.link); render(); return;
+    }
     el.setPointerCapture(e.pointerId);
     el.style.cursor="grabbing";
     const startX=e.clientX, startY=e.clientY;
     const ox=parseFloat(el.style.left)||0, oy=parseFloat(el.style.top)||0;
     let nx=ox, ny=oy;
+    // перенос жёлтого узла на вкладке 2 тянет за собой всю группу связанных зелёных
+    const kids=(state.stage===1 && it.type==="note" && it.color==="yellow")
+      ? childrenOf(it.id).map(k=>({it:k, el:world.querySelector(`.note[data-id="${k.id}"]`)})).filter(k=>k.el) : [];
+    kids.forEach(k=>{ k.ox=parseFloat(k.el.style.left)||0; k.oy=parseFloat(k.el.style.top)||0; });
     const move=(ev)=>{
       nx=ox+(ev.clientX-startX)/state.view.k;
       ny=oy+(ev.clientY-startY)/state.view.k;
       el.style.left=nx+"px"; el.style.top=ny+"px";
+      if(kids.length){
+        kids.forEach(k=>{ k.el.style.left=(k.ox+nx-ox)+"px"; k.el.style.top=(k.oy+ny-oy)+"px"; });
+      }
+      if(state.stage===1) drawLinks();
     };
     const up=()=>{
       el.removeEventListener("pointermove",move);
       el.removeEventListener("pointerup",up);
       el.style.cursor="grab";
       if(nx!==ox||ny!==oy){
-        if(isAgg(it)){
-          if(tasksOnly()){ it.s2x=nx; it.s2y=ny; }                                 // этап 2 — не трогаем команду
-          else { const t=commonT[teamIndex(it.space)]||{x:0,y:0}; it.x=nx-t.x; it.y=ny-t.y; }
-        }
+        if(isAgg(it)){ const t=commonT[teamIndex(it.space)]||{x:0,y:0}; it.x=nx-t.x; it.y=ny-t.y; }
         else { it.x=nx; it.y=ny; }
-        if(it.s3 && state.stage===2){ assignMatrix(it); render(); }  // привязка к колонке матрицы
+        kids.forEach(k=>{ k.it.x=k.ox+nx-ox; k.it.y=k.oy+ny-oy; store.upsert(k.it); });
         store.upsert(it);
       }
     };
@@ -1286,7 +1292,7 @@ $("#zoomOut").onclick=()=>zoomBy(1/1.2);
 $("#fitBtn").onclick=fitAll;
 function fitAll(){
   const rect=canvas.getBoundingClientRect();
-  const els=[...world.querySelectorAll(".card,.note,.zone,.mxcol,.mxtitle,.mx6stickers")];
+  const els=[...world.querySelectorAll(".card,.note,.imgitem,.zone,.mx6stickers")];
   if(!els.length){ state.view={x:40,y:20,k:1}; applyView(); return; }
   let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
   els.forEach(el=>{ const x=parseFloat(el.style.left)||0, y=parseFloat(el.style.top)||0;
@@ -1306,6 +1312,21 @@ function centerWorld(){
   return {x:(rect.width/2-state.view.x)/state.view.k-140, y:(rect.height/2-state.view.y)/state.view.k-40};
 }
 let editingId=null, noteColor="yellow";
+/* палитра стикера зависит от вкладки: 1 — только жёлтый (выбора нет), 2 — жёлтый/зелёный, 5 — синий/розовый/оранжевый/белый */
+const NOTE_COLORS={yellow:["Жёлтый","#fff6c9"],green:["Зелёный","#dff0e4"],pink:["Розовый","#fbe0e6"],blue:["Синий","#dde9fb"],orange:["Оранжевый","#fde3c4"],white:["Белый","#ffffff"]};
+function notePalette(){ if(state.stage===1) return ["yellow","green"]; if(state.stage===4) return ["blue","pink","orange","white"]; return null; }
+function defaultNoteColor(){ const p=notePalette(); return p?p[0]:"yellow"; }
+function buildNoteColors(){
+  const box=$("#noteColors"), pal=notePalette();
+  box.innerHTML=""; box.style.display=pal?"flex":"none";
+  if(!pal) return;
+  pal.forEach(c=>{
+    const b=document.createElement("button"); b.type="button"; b.className="btn small"+(c===noteColor?" sel":"");
+    b.innerHTML=`<span class="sw" style="background:${NOTE_COLORS[c][1]}"></span>${NOTE_COLORS[c][0]}`;
+    b.onclick=()=>{ noteColor=c; buildNoteColors(); };
+    box.appendChild(b);
+  });
+}
 
 /* --- динамические строки задач в форме --- */
 function addTaskRow(value){
@@ -1358,17 +1379,17 @@ function openNote(id){
   editingId=id;
   const it=id?state.cards[id]:null;
   $("#nText").value=it?it.text||"":"";
-  noteColor=it?it.color||"yellow":"yellow";
+  noteColor=it?it.color||"yellow":defaultNoteColor();
+  buildNoteColors();
   $("#noteOverlay").classList.add("open");
   setTimeout(()=>$("#nText").focus(),50);
 }
 $("#addNoteBtn").onclick=()=>openNote(null);
 $("#noteCancel").onclick=()=>$("#noteOverlay").classList.remove("open");
-$("#noteColors").querySelectorAll("button").forEach(b=>b.onclick=()=>{noteColor=b.dataset.c;});
 $("#noteSave").onclick=()=>{
   const text=$("#nText").value;
   if(editingId){ const it=state.cards[editingId]; it.text=text; it.color=noteColor; store.upsert(it); }
-  else{ const p=centerWorld(); const it={id:uid(),type:"note",space:state.space,stage:state.stage+1,x:p.x,y:p.y,text,color:noteColor, ...(state.stage===2?{s3:true}:{})};
+  else{ const p=centerWorld(); const it={id:uid(),type:"note",space:state.space,stage:state.stage+1,x:p.x,y:p.y,text,color:noteColor, ...(state.stage===1?{data:{team:-1,parent:null}}:{})};
     state.cards[it.id]=it; store.upsert(it); }
   $("#noteOverlay").classList.remove("open"); render();
 };
@@ -1430,7 +1451,7 @@ function openTpl(type,id){
 $("#tplCancel").onclick=()=>$("#tplOverlay").classList.remove("open");
 /* добавить ещё одну карточку пробы в текущую группу (заполняется на месте) */
 function addTrialCard(){
-  if(!/^group\d+$/.test(state.space)) return;
+  if(!/^(group\d+|team[1-6])$/.test(state.space)) return;
   const n=Object.values(state.cards).filter(it=>it.type==="trial"&&it.space===state.space).length;
   const it={id:uid(), type:"trial", space:state.space, x:40, y:40+n*820, data:{}};
   state.cards[it.id]=it; store.upsert(it); render();
@@ -1469,6 +1490,56 @@ document.addEventListener("keydown",(e)=>{
   }
 });
 
+/* Esc выключает режим связи (вкладка 2) */
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && state.link){ state.link=null; render(); } });
+$("#linkDone").onclick=()=>{ state.link=null; render(); };
+
+/* ---------- картинки (вкладка 5): кнопка, вставка из буфера, перетаскивание файла ---------- */
+function shrinkImage(blob){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(blob), im=new Image();
+    im.onload=()=>{
+      URL.revokeObjectURL(url);
+      // картинка хранится прямо в строке карточки — ужимаем, чтобы запись оставалась лёгкой
+      let max=1200, q=.82, out="", cw=0;
+      for(let i=0;i<6;i++){
+        const k=Math.min(1,max/Math.max(im.width,im.height));
+        const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(im.width*k)); c.height=Math.max(1,Math.round(im.height*k));
+        const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(im,0,0,c.width,c.height);
+        out=c.toDataURL("image/jpeg",q); cw=c.width;
+        if(out.length<450000) break;
+        max*=.75; q=Math.max(.6,q-.06);
+      }
+      resolve({src:out,w:cw});
+    };
+    im.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error("bad image")); };
+    im.src=url;
+  });
+}
+async function addImageFromBlob(blob){
+  if(state.stage!==4 || !blob || !/^image\//.test(blob.type)) return;
+  try{
+    const r=await shrinkImage(blob);
+    const p=centerWorld();
+    const it={id:uid(),type:"image",space:state.space,stage:5,x:p.x+Math.random()*30,y:p.y+Math.random()*30,data:{src:r.src,w:Math.min(360,r.w)}};
+    state.cards[it.id]=it; store.upsert(it); render();
+  }catch(e){ console.error(e); alert("Не удалось вставить картинку. Попробуйте другой файл."); }
+}
+$("#addImageBtn").onclick=()=>$("#imgFile").click();
+$("#imgFile").onchange=(e)=>{ [...e.target.files].forEach(addImageFromBlob); e.target.value=""; };
+document.addEventListener("paste",(e)=>{
+  if(state.stage!==4) return;
+  if(e.target && e.target.closest && e.target.closest("textarea,input")) return;
+  const files=[...((e.clipboardData&&e.clipboardData.items)||[])].filter(i=>i.kind==="file"&&/^image\//.test(i.type)).map(i=>i.getAsFile());
+  if(!files.length) return;
+  e.preventDefault(); files.forEach(addImageFromBlob);
+});
+canvas.addEventListener("dragover",(e)=>{ if(state.stage===4 && e.dataTransfer && [...e.dataTransfer.types].includes("Files")) e.preventDefault(); });
+canvas.addEventListener("drop",(e)=>{
+  if(state.stage!==4 || !e.dataTransfer || !e.dataTransfer.files.length) return;
+  e.preventDefault(); [...e.dataTransfer.files].forEach(addImageFromBlob);
+});
+
 /* ---------- space selector ---------- */
 const sel=$("#spaceSel");
 sel.onchange=()=>{
@@ -1482,12 +1553,14 @@ function showBanner(){ $("#bannerText").innerHTML=STAGES[state.stage].text; $("#
 function goToStage(i){
   const isGroup=/^group\d+$/.test(state.space);
   const isTeam=/^team[1-6]$/.test(state.space);
-  state.stage=i;
-  if(i===3){ if(!isGroup) state.space="group1"; }         // этап 4 — по группам
+  state.stage=i; state.link=null;
+  if(i===2){ if(!isTeam) state.space="team1"; }            // 1 день — по командам
+  else if(i===3){ if(!isGroup) state.space="group1"; }     // 2 день — по группам
   else if(i===4||i===5){ if(!isTeam) state.space="team1"; } // этапы 5-6 — по командам
   else if(i===1){ state.space="common"; }            // этап 2 — только общий вид
   else if(isGroup || state.space==="common"){ state.space="team1"; } // возврат к командам
-  if(i===3) seedStage4();
+  if(i===2) seedStage3Day1();
+  if(i===3) seedStage4Day2();
   if(i===4) seedStage5();
   if(i===5) seedStage6();
   state.view={x:40,y:20,k:1};
@@ -1509,7 +1582,7 @@ function initMaster(){
   applyMasterUITimer();
 }
 $("#masterFab").onclick=()=>{ const p=$("#masterPanel"); p.style.display = p.style.display==="block"?"none":"block"; renderMasterStages(); };
-$("#syncStage3Btn").onclick=syncStage3;
+$("#syncStage2Btn").onclick=snapshotStage2Manual;
 function renderMasterStages(){
   if(!state.isMaster) return;
   const box=$("#mstages"); box.innerHTML="";
@@ -1526,7 +1599,10 @@ function renderMasterStages(){
 }
 function setUnlocked(v){
   v=Math.max(0,Math.min(STAGES.length-1,v));
+  const opening2 = v>=1 && state.unlocked<1;
   state.unlocked=v; store.setStage(v); render();
+  // вкладка 2 открывается впервые — делаем одноразовый снимок стикеров вкладки 1
+  if(opening2) snapshotStage2().then(()=>render()).catch(e=>{ console.error(e); alert("Не удалось скопировать стикеры на вкладку 2: "+(e&&e.message?e.message:e)+"\nНажмите «Добрать стикеры этапа 1 → этап 2» в панели ведущего."); });
 }
 
 /* ============================================================
@@ -1597,15 +1673,15 @@ $("#exportBtn").onclick=()=>{
     if(!items.length) return;
     md+=`\n## ${sp.name}\n`;
     const cards=items.filter(i=>i.type==="card");
-    const notes=items.filter(i=>i.type==="note" && !i.s3);   // копии этапа 3 — отдельным разделом ниже
+    const notes=items.filter(i=>i.type==="note" && !i.s3 && (i.stage||1)===1);   // стикеры других вкладок — отдельными разделами ниже
     cards.forEach((c,i)=>{
       md+=`\n### Карточка ${i+1}${c.author?` — ${c.author}`:""}\n`;
       md+=`- **Ситуация:** ${c.situation||"—"}\n`;
-      md+=`- **Для кого создаётся ценность:** ${c.value_for||"—"}\n`;
-      md+=`- **Что должно измениться:** ${c.change||"—"}\n`;
+      md+=`- **Кто являлся получателем ценности:** ${c.value_for||"—"}\n`;
+      md+=`- **Созданные ценности:** ${c.change||"—"}\n`;
       const ts=normTasks(c.tasks);
-      if(ts.length){ md+=`- **Какие задачи выполняются:**\n`; ts.forEach((t,j)=>md+=`  ${j+1}. ${t}\n`); }
-      else md+=`- **Какие задачи выполняются:** —\n`;
+      if(ts.length){ md+=`- **Какие задачи необходимо было решить для создания ценности:**\n`; ts.forEach((t,j)=>md+=`  ${j+1}. ${t}\n`); }
+      else md+=`- **Какие задачи необходимо было решить для создания ценности:** —\n`;
     });
     if(notes.length){
       md+=`\n**Стикеры:**\n`;
@@ -1613,47 +1689,49 @@ $("#exportBtn").onclick=()=>{
     }
   });
 
-  // Матрица уровней внедрения (этап 3)
-  const s3all=Object.values(state.cards).filter(it=>it.s3);
-  if(s3all.length){
-    md+=`\n\n## Матрица уровней внедрения (этап 3)\n`;
-    for(let t=0;t<6;t++){
-      const items=s3all.filter(it=>it.space==="team"+(t+1));
-      if(!items.length) continue;
-      md+=`\n### ${SPACES[t].name}\n`;
-      ABCDE.forEach(col=>{
-        const inCol=items.filter(it=>it.matrix===col.k).map(it=>it.text||"(пусто)");
-        md+=`- **${col.k} · ${col.title}:** ${inCol.length?inCol.join("; "):"—"}\n`;
-      });
-      const un=items.filter(it=>!it.matrix).map(it=>it.text||"(пусто)");
-      if(un.length) md+=`- **Не распределено:** ${un.join("; ")}\n`;
-    }
+  // Этап 2 — типы задач (жёлтые узлы и привязанные к ним зелёные)
+  const s2notes=Object.values(state.cards).filter(it=>it.type==="note" && it.stage===2);
+  if(s2notes.length){
+    md+=`\n\n## Этап 2 — типы задач (общее)\n`;
+    const yellows=s2notes.filter(n=>n.color==="yellow");
+    const isBound=n=>n.color==="green" && parentOf(n);
+    yellows.forEach(y=>{
+      md+=`\n- **${y.text||"(пусто)"}**\n`;
+      s2notes.filter(n=>isBound(n)&&parentOf(n).id===y.id).forEach(n=>{ md+=`  - ${n.text||"(пусто)"}\n`; });
+    });
+    const free=s2notes.filter(n=>n.color!=="yellow" && !isBound(n));
+    if(free.length){ md+=`\n**Без связи:**\n`; free.forEach(n=>{ md+=`- ${n.text||"(пусто)"}\n`; }); }
   }
 
-  // Этап 4 — пробы и полевые заметки
+  // Этапы 3 и 4 — пробы и полевые заметки (1 и 2 день)
   const fieldMd=(f,v)=>{
     if(f.list){ const arr=Array.isArray(v)?v:(v?[v]:[]); if(!arr.length) return `- **${f.label}:** —\n`;
       return `- **${f.label}:**\n`+arr.map((x,j)=>`  ${j+1}. ${x}\n`).join(""); }
     return `- **${f.label}:** ${v||"—"}\n`;
   };
-  const trials=Object.values(state.cards).filter(it=>it.type==="trial");
-  const fnotes=Object.values(state.cards).filter(it=>it.type==="fieldnotes");
-  if(trials.length||fnotes.length){
-    md+=`\n\n## Этап 4 — пробы и полевые заметки\n`;
-    GROUPS.forEach(g=>{
+  const trialsAll=Object.values(state.cards).filter(it=>it.type==="trial");
+  const fnotesAll=Object.values(state.cards).filter(it=>it.type==="fieldnotes");
+  const exportDay=(title,spaces,aggWho)=>{
+    const ids=spaces.map(g=>g.id);
+    const trials=trialsAll.filter(t=>ids.includes(t.space)), fnotes=fnotesAll.filter(t=>ids.includes(t.space));
+    if(!trials.length&&!fnotes.length) return;
+    md+=`\n\n## ${title}\n`;
+    spaces.forEach(g=>{
       const gt=trials.filter(t=>t.space===g.id), gf=fnotes.filter(t=>t.space===g.id);
       if(!gt.length&&!gf.length) return;
       md+=`\n### ${g.name}\n`;
       gt.forEach((t,i)=>{ md+=`\n**Карточка пробы ${i+1}**\n`; TEMPLATES.trial.fields.forEach(f=>{ md+=fieldMd(f,(t.data||{})[f.key]); }); });
       gf.forEach((t,i)=>{ md+=`\n**Полевые заметки ${i+1}**\n`; TEMPLATES.fieldnotes.fields.forEach(f=>{ md+=fieldMd(f,(t.data||{})[f.key]); }); });
     });
-    md+=`\n### Полевые заметки — сводно по всем группам\n`;
+    md+=`\n### Полевые заметки — сводно по всем ${aggWho}\n`;
     TEMPLATES.fieldnotes.fields.forEach(f=>{
       let entries=[];
       fnotes.forEach(n=>{ const v=(n.data||{})[f.key]; const arr=Array.isArray(v)?v:(v?[v]:[]); arr.forEach(x=>{ if(x&&(""+x).trim()) entries.push(x); }); });
       md+=`- **${f.label}:** ${entries.length?entries.join("; "):"—"}\n`;
     });
-  }
+  };
+  exportDay("Этап 3 — пробы и заметки. 1 день",TEAM_SPACES,"командам");
+  exportDay("Этап 4 — пробы и заметки. 2 день",GROUPS,"группам");
 
   // Этап 5 — условия внедрения
   const conditions=Object.values(state.cards).filter(it=>it.type==="condition");
@@ -1664,6 +1742,8 @@ $("#exportBtn").onclick=()=>{
       if(!gc.length) return;
       md+=`\n### ${sp.name}\n`;
       gc.forEach((c,i)=>{ md+=`\n**Цепочка ${i+1}**\n`; TEMPLATES.condition.fields.forEach(f=>{ md+=fieldMd(f,(c.data||{})[f.key]); }); });
+      const st=Object.values(state.cards).filter(n=>n.type==="note" && n.stage===5 && n.space===sp.id);
+      if(st.length){ md+=`\n**Стикеры:**\n`; st.forEach(n=>{ md+=`- ${n.text||"(пусто)"}\n`; }); }
     });
     md+=`\n### Условия внедрения — сводно по всем командам\n`;
     TEMPLATES.condition.fields.forEach(f=>{
@@ -1681,8 +1761,7 @@ $("#exportBtn").onclick=()=>{
       md+=`- **${row.label}:**\n`;
       ABCDE.forEach(col=>{
         const manual=mx6ItemsOf((mx6cards.find(c=>c.space===sp)||{}).data||{},row.key,col.k);
-        const synced=row.synced ? mx6TasksFromStage3(col.k, sp) : [];
-        const text=[...synced,...manual].join("; ");
+        const text=manual.join("; ");
         md+=`  - *${col.k} · ${MX6_SHORT[col.k]}:* ${text&&(""+text).trim()?text:"—"}\n`;
       });
     };
@@ -1727,10 +1806,6 @@ function LocalStore(){
     upsert(it){ const a=loadAll(); a[it.id]=it; saveAll(a); bc&&bc.postMessage({t:"upsert",item:it}); },
     remove(id){ const a=loadAll(); delete a[id]; saveAll(a); bc&&bc.postMessage({t:"remove",id}); },
     fetchAllCards(){ return Object.values(loadAll()); },
-    clearStage3(){
-      const a=loadAll(); Object.keys(a).forEach(id=>{ if(a[id].s3) delete a[id]; });
-      saveAll(a); bc&&bc.postMessage({t:"reload"});
-    },
     setStage(v){ localStorage.setItem(SKEY,String(v)); bc&&bc.postMessage({t:"stage",v}); },
     setTimer(patch){
       const t={
@@ -1772,7 +1847,6 @@ function SupaStore(){
     async upsert(it){ const {error}=await sb.from("cards").upsert(it); if(error)console.error(error); },
     async remove(id){ const {error}=await sb.from("cards").delete().eq("id",id); if(error)console.error(error); },
     async fetchAllCards(){ const {data,error}=await sb.from("cards").select("*"); if(error){console.error(error); throw error;} return data||[]; },
-    async clearStage3(){ const {error}=await sb.from("cards").delete().eq("s3",true); if(error){console.error(error); throw error;} },
     async setStage(v){ const {error}=await sb.from("board").upsert({id:1,unlocked_stage:v}); if(error)console.error(error); },
     setTimer(patch){
       timerQueue = timerQueue.then(async ()=>{

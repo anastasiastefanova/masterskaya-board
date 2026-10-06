@@ -893,15 +893,17 @@ async function snapshotStage2(){
   const rowH=[0,0,0,0];
   keys.forEach((t,bi)=>{ const r=Math.floor(bi/3); rowH[r]=Math.max(rowH[r], Math.ceil(groups[t].length/3)*CH+60); });
   const rowY=[y0, y0+rowH[0], y0+rowH[0]+rowH[1], y0+rowH[0]+rowH[1]+rowH[2]];
+  const batch=[];
   keys.forEach((t,bi)=>{
     const bx=(bi%3)*BW, by=rowY[Math.floor(bi/3)];
     groups[t].forEach((src,i)=>{
       const copy={id:"s2-"+src.id, type:"note", space:"common", stage:2, from_note:src.id,
         x:bx+(i%3)*CW, y:by+Math.floor(i/3)*CH, text:src.text, color:src.color||"yellow", data:{team:t, parent:null}};
-      state.cards[copy.id]=copy; store.upsert(copy);
-      src.data={...(src.data||{}), s2done:true}; store.upsert(src);
+      state.cards[copy.id]=copy; batch.push(copy);
+      src.data={...(src.data||{}), s2done:true}; batch.push(src);
     });
   });
+  await store.upsertMany(batch);        // пакетами, а не сотнями отдельных запросов
   return sources.length;
 }
 async function snapshotStage2Manual(){
@@ -927,6 +929,26 @@ function posOf(it){
   return {x:it.x,y:it.y};
 }
 
+/* Перерисовка от чужих изменений (realtime): не прерывает то, что человек делает руками.
+   Пока он тащит стикер/меняет размер или печатает прямо на доске — откладываем,
+   потом применяем один раз; несколько событий подряд (например, перенос группы)
+   схлопываются в одну перерисовку. Свои действия по-прежнему рисуются сразу. */
+let busyDrag=0, remotePending=false, remoteScheduled=false;
+function userBusy(){
+  if(busyDrag>0) return true;
+  const a=document.activeElement;
+  return !!(a && /^(TEXTAREA|INPUT)$/.test(a.tagName) && world.contains(a));
+}
+function renderRemote(){
+  remotePending=true;
+  if(remoteScheduled) return;
+  remoteScheduled=true;
+  requestAnimationFrame(function tick(){
+    if(userBusy()){ setTimeout(()=>requestAnimationFrame(tick),150); return; }   // ждём, пока человек закончит
+    remoteScheduled=false;
+    if(remotePending){ remotePending=false; render(); }
+  });
+}
 function render(){
   // фоновый лесной символ пространства
   $("#watermark").textContent = state.space==="common" ? "" : symbolForSpace(state.space);
@@ -1107,10 +1129,12 @@ function renderImage(it){
   const rz=el.querySelector(".rz");
   rz.addEventListener("pointerdown",(e)=>{
     e.stopPropagation(); e.preventDefault(); rz.setPointerCapture(e.pointerId);
-    const sx=e.clientX, w0=el.offsetWidth; let w=w0;
+    const sx=e.clientX, w0=el.offsetWidth; let w=w0; busyDrag++;
     const move=(ev)=>{ w=Math.max(80,w0+(ev.clientX-sx)/state.view.k); el.style.width=w+"px"; };
     const up=()=>{ rz.removeEventListener("pointermove",move); rz.removeEventListener("pointerup",up);
-      it.data={...(it.data||{}), w:Math.round(w)}; store.upsert(it); };
+      busyDrag=Math.max(0,busyDrag-1);
+      const cur=state.cards[it.id]||it;
+      cur.data={...(cur.data||{}), w:Math.round(w)}; store.upsert(cur); };
     rz.addEventListener("pointermove",move); rz.addEventListener("pointerup",up);
   });
   makeDraggable(el,it);
@@ -1225,6 +1249,7 @@ function makeDraggable(el,it){
     }
     el.setPointerCapture(e.pointerId);
     el.style.cursor="grabbing";
+    busyDrag++; let busyOn=true;
     const startX=e.clientX, startY=e.clientY;
     const ox=parseFloat(el.style.left)||0, oy=parseFloat(el.style.top)||0;
     let nx=ox, ny=oy;
@@ -1244,16 +1269,22 @@ function makeDraggable(el,it){
     const up=()=>{
       el.removeEventListener("pointermove",move);
       el.removeEventListener("pointerup",up);
+      el.removeEventListener("pointercancel",up);
       el.style.cursor="grab";
+      if(busyOn){ busyOn=false; busyDrag=Math.max(0,busyDrag-1); }
       if(nx!==ox||ny!==oy){
-        if(isAgg(it)){ const t=commonT[teamIndex(it.space)]||{x:0,y:0}; it.x=nx-t.x; it.y=ny-t.y; }
-        else { it.x=nx; it.y=ny; }
-        kids.forEach(k=>{ k.it.x=k.ox+nx-ox; k.it.y=k.oy+ny-oy; store.upsert(k.it); });
-        store.upsert(it);
+        // пока тащили, чужие правки могли обновить запись — пишем позицию в актуальный объект, а не в устаревший
+        const cur=state.cards[it.id]||it;
+        if(isAgg(cur)){ const t=commonT[teamIndex(cur.space)]||{x:0,y:0}; cur.x=nx-t.x; cur.y=ny-t.y; }
+        else { cur.x=nx; cur.y=ny; }
+        const batch=[cur];
+        kids.forEach(k=>{ const kc=state.cards[k.it.id]||k.it; kc.x=k.ox+nx-ox; kc.y=k.oy+ny-oy; batch.push(kc); });
+        store.upsertMany(batch);       // вся группа — одним запросом
       }
     };
     el.addEventListener("pointermove",move);
     el.addEventListener("pointerup",up);
+    el.addEventListener("pointercancel",up);
   });
 }
 
@@ -1799,11 +1830,12 @@ function LocalStore(){
         else if(m.t==="remove"){delete state.cards[m.id];}
         else if(m.t==="stage"){state.unlocked=m.v;}
         else if(m.t==="timer"){state.timer=m.v; timerApplyState();}
-        render();
+        renderRemote();
       };
       setConn("local","Локальный режим (вкладки этого браузера)");
     },
     upsert(it){ const a=loadAll(); a[it.id]=it; saveAll(a); bc&&bc.postMessage({t:"upsert",item:it}); },
+    upsertMany(items){ items.forEach(it=>this.upsert(it)); },
     remove(id){ const a=loadAll(); delete a[id]; saveAll(a); bc&&bc.postMessage({t:"remove",id}); },
     fetchAllCards(){ return Object.values(loadAll()); },
     setStage(v){ localStorage.setItem(SKEY,String(v)); bc&&bc.postMessage({t:"stage",v}); },
@@ -1837,14 +1869,19 @@ function SupaStore(){
         .on("postgres_changes",{event:"*",schema:"public",table:"cards"},payload=>{
           if(payload.eventType==="DELETE"){ delete state.cards[payload.old.id]; }
           else { state.cards[payload.new.id]=payload.new; }
-          render();
+          renderRemote();
         })
         .on("postgres_changes",{event:"*",schema:"public",table:"board"},payload=>{
-          if(payload.new){ state.unlocked=payload.new.unlocked_stage||0; applyTimerRow(payload.new); render(); }
+          if(payload.new){ state.unlocked=payload.new.unlocked_stage||0; applyTimerRow(payload.new); renderRemote(); }
         })
         .subscribe(status=>{ if(status==="SUBSCRIBED") setConn("live","Онлайн · синхронизация включена"); });
     },
     async upsert(it){ const {error}=await sb.from("cards").upsert(it); if(error)console.error(error); },
+    async upsertMany(items){
+      for(let i=0;i<items.length;i+=100){
+        const {error}=await sb.from("cards").upsert(items.slice(i,i+100)); if(error)console.error(error);
+      }
+    },
     async remove(id){ const {error}=await sb.from("cards").delete().eq("id",id); if(error)console.error(error); },
     async fetchAllCards(){ const {data,error}=await sb.from("cards").select("*"); if(error){console.error(error); throw error;} return data||[]; },
     async setStage(v){ const {error}=await sb.from("board").upsert({id:1,unlocked_stage:v}); if(error)console.error(error); },
